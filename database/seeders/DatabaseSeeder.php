@@ -55,11 +55,11 @@ class DatabaseSeeder extends Seeder
 
         // 1. Create Default Admin User
         $admin = User::updateOrCreate(
-            ['email' => 'admin@modhu.com'],
+            ['email' => 'admin@gmail.com'],
             [
                 'name' => 'Admin',
                 'phone' => '01700000000',
-                'password' => Hash::make('password123'),
+                'password' => Hash::make('password'),
                 'is_admin' => true,
             ]
         );

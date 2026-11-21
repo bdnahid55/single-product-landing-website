@@ -45,7 +45,7 @@
       <form action="{{ route('admin.login.submit') }}" method="post">
         @csrf
         <div class="input-group mb-3">
-          <input type="email" name="email" class="form-control" placeholder="Email" value="{{ old('email', 'admin@modhu.com') }}" required autofocus>
+          <input type="email" name="email" class="form-control" placeholder="Email" value="{{ old('email') }}" required autofocus autocomplete="email">
           <div class="input-group-append">
             <div class="input-group-text">
               <span class="fas fa-envelope"></span>
@@ -53,7 +53,7 @@
           </div>
         </div>
         <div class="input-group mb-3">
-          <input type="password" name="password" class="form-control" placeholder="Password" value="password123" required>
+          <input type="password" name="password" class="form-control" placeholder="Password" required autocomplete="current-password">
           <div class="input-group-append">
             <div class="input-group-text">
               <span class="fas fa-lock"></span>
