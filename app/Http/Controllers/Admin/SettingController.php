@@ -66,19 +66,33 @@ class SettingController extends Controller
             if ($request->hasFile($fileKey)) {
                 $oldPath = Setting::get($settingKey);
 
-                $path = $request->file($fileKey)->store('uploads', 'public');
-                Setting::set($settingKey, 'storage/' . $path, 'content');
+                $path = $request->file($fileKey)->store('', 'public');
+                Setting::set($settingKey, 'uploads/' . $path, 'content');
 
                 if ($fileKey === 'site_favicon_file') {
-                    @copy(storage_path('app/public/' . $path), public_path('favicon.ico'));
-                    @copy(storage_path('app/public/' . $path), public_path('assets/images/favicon.png'));
+                    $uploadedFavicon = public_path('uploads/' . $path);
+                    if (file_exists($uploadedFavicon)) {
+                        @copy($uploadedFavicon, public_path('favicon.ico'));
+                        @copy($uploadedFavicon, public_path('assets/images/favicon.png'));
+                    }
                 }
 
                 // Delete previous uploaded file from disk (guarding default assets)
-                if ($oldPath && str_starts_with($oldPath, 'storage/')) {
-                    $relativeDiskPath = substr($oldPath, strlen('storage/'));
-                    if (Storage::disk('public')->exists($relativeDiskPath)) {
-                        Storage::disk('public')->delete($relativeDiskPath);
+                if ($oldPath && !str_starts_with($oldPath, 'assets/')) {
+                    $cleanOld = ltrim(str_replace(['storage/', 'uploads/'], '', $oldPath), '/');
+
+                    if (Storage::disk('public')->exists($cleanOld)) {
+                        Storage::disk('public')->delete($cleanOld);
+                    }
+
+                    $inUploads = public_path('uploads/' . $cleanOld);
+                    if (file_exists($inUploads) && is_file($inUploads)) {
+                        @unlink($inUploads);
+                    }
+
+                    $inPublic = public_path(ltrim(str_replace('storage/', '', $oldPath), '/'));
+                    if (file_exists($inPublic) && is_file($inPublic)) {
+                        @unlink($inPublic);
                     }
                 }
             }

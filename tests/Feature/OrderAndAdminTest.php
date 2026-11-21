@@ -1170,7 +1170,8 @@ class OrderAndAdminTest extends TestCase
 
         // Old file is deleted from disk, new file exists
         \Illuminate\Support\Facades\Storage::disk('public')->assertMissing($oldPath);
-        \Illuminate\Support\Facades\Storage::disk('public')->assertExists($product->image);
+        $newRelative = ltrim(str_replace('uploads/', '', $product->image), '/');
+        \Illuminate\Support\Facades\Storage::disk('public')->assertExists($newRelative);
     }
 
     public function test_backup_service_cleans_temporary_dump_directory()
@@ -1208,5 +1209,14 @@ class OrderAndAdminTest extends TestCase
         $homeResp = $this->get('/');
         $homeResp->assertStatus(200);
         $homeResp->assertSee(asset($savedPoster));
+    }
+
+    public function test_uploaded_files_are_routed_to_public_uploads_disk(): void
+    {
+        $diskConfig = config('filesystems.disks.public');
+        $this->assertEquals(public_path('uploads'), $diskConfig['root']);
+
+        $uploadsDisk = config('filesystems.disks.uploads');
+        $this->assertEquals(public_path('uploads'), $uploadsDisk['root']);
     }
 }

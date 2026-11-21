@@ -370,7 +370,7 @@
                     <td>
                       <div class="d-flex align-items-center gap-2">
                         @if($item->product && $item->product->image)
-                          <img src="{{ asset($item->product->image) }}"
+                          <img src="{{ $item->product->image_url }}"
                                alt="{{ $item->product_name }}"
                                style="width: 45px; height: 45px; object-fit: contain; border-radius: 6px; border: 1px solid #e2e8f0;">
                         @endif

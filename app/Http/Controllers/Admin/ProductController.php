@@ -92,7 +92,8 @@ class ProductController extends Controller
 
         $imagePath = null;
         if ($request->hasFile('image')) {
-            $imagePath = $request->file('image')->store('products', 'public');
+            $path = $request->file('image')->store('products', 'public');
+            $imagePath = 'uploads/' . $path;
         }
 
         $isFeatured = $request->boolean('is_featured');
@@ -161,7 +162,8 @@ class ProductController extends Controller
         if ($request->hasFile('image')) {
             // Delete old uploaded image file before storing new one
             $product->deleteImageFile();
-            $data['image'] = $request->file('image')->store('products', 'public');
+            $path = $request->file('image')->store('products', 'public');
+            $data['image'] = 'uploads/' . $path;
         }
 
         $isFeatured = $request->boolean('is_featured');
