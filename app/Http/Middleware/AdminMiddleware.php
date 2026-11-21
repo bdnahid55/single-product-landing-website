@@ -21,6 +21,22 @@ class AdminMiddleware
             return redirect()->route('admin.login')->with('error', 'Please log in with admin privileges to access this area.');
         }
 
+        // Automatic admin logout after 1 hour (3600 seconds) inactivity
+        $inactivityLimit = 3600;
+        $lastActivity = session('admin_last_activity');
+
+        if ($lastActivity && (time() - $lastActivity) > $inactivityLimit) {
+            Auth::logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+
+            return redirect()->route('admin.login')
+                ->with('warning', 'নিষ্ক্রিয়তার কারণে (১ ঘণ্টা নিষ্ক্রিয় থাকার পর) আপনাকে স্বয়ংক্রিয়ভাবে লগআউট করা হয়েছে। অনুগ্রহ করে পুনরায় লগইন করুন। (Automatically logged out due to 1 hour of inactivity).');
+        }
+
+        // Update last activity timestamp on each active request
+        session(['admin_last_activity' => time()]);
+
         return $next($request);
     }
 }

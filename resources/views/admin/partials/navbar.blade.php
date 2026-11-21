@@ -34,7 +34,11 @@
       </a>
 
       <div class="dropdown-menu dropdown-menu-right">
-        <span class="dropdown-item dropdown-header">{{ auth()->user()->email ?? 'admin@modhu.com' }}</span>
+        <span class="dropdown-item dropdown-header">{{ auth()->user()->email ?? '' }}</span>
+        <div class="dropdown-divider"></div>
+        <a href="{{ route('admin.users.edit', auth()->id()) }}" class="dropdown-item">
+          <i class="fas fa-user-shield mr-2 text-primary"></i> প্রোফাইল ও পাসওয়ার্ড পরিবর্তন
+        </a>
         <div class="dropdown-divider"></div>
         <form action="{{ route('admin.logout') }}" method="POST">
           @csrf

@@ -46,23 +46,27 @@ Route::get('/sitemap.xml', function () {
     return response()->view('sitemap')->header('Content-Type', 'application/xml');
 })->name('sitemap');
 
-Route::get('/login', function () {
-    return redirect()->route('admin.login');
-})->name('login');
-
 /*
 |--------------------------------------------------------------------------
-| Admin Authentication Routes
+| Custom Admin Authentication Portal (/secure-portal)
 |--------------------------------------------------------------------------
 */
-Route::prefix('admin')->name('admin.')->group(function () {
-    Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
-    Route::post('/login', [AuthController::class, 'login'])->name('login.submit');
+Route::prefix('secure-portal')->name('admin.')->group(function () {
+    Route::get('/', [AuthController::class, 'showLoginForm'])->name('login');
+    Route::post('/', [AuthController::class, 'login'])->name('login.submit');
     Route::get('/verify-otp', [AuthController::class, 'showOtpForm'])->name('otp.show');
     Route::post('/verify-otp', [AuthController::class, 'verifyOtp'])->name('otp.verify');
     Route::post('/resend-otp', [AuthController::class, 'resendOtp'])->name('otp.resend');
     Route::get('/cancel-otp', [AuthController::class, 'cancelOtp'])->name('otp.cancel');
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+});
+
+// Hide default /admin/login & /login from scanners/bots (Returns 404 Not Found)
+Route::any('/admin/login', function () {
+    abort(404);
+});
+Route::any('/login', function () {
+    abort(404);
 });
 
 /*

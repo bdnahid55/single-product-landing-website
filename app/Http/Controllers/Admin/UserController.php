@@ -79,6 +79,20 @@ class UserController extends Controller
      */
     public function update(Request $request, User $user)
     {
+        // 1. Re-authentication before changing password
+        if ($request->filled('password')) {
+            $request->validate([
+                'current_password' => ['required', 'current_password'],
+            ], [
+                'current_password.required'         => 'পাসওয়ার্ড পরিবর্তনের পূর্বে আপনার বর্তমান পাসওয়ার্ড প্রদান করে রি-অথেনটিকেশন (Re-authentication) করুন।',
+                'current_password.current_password' => 'আপনার প্রদত্ত বর্তমান পাসওয়ার্ডটি সঠিক নয় (Invalid current password)।',
+            ]);
+        } elseif ($request->filled('current_password')) {
+            return back()->withInput()->withErrors([
+                'password' => 'পাসওয়ার্ড পরিবর্তন করতে চাইলে নতুন পাসওয়ার্ডের ঘরে পাসওয়ার্ডটি লিখুন (Please enter new password).',
+            ]);
+        }
+
         $validated = $request->validate([
             'name'     => 'required|string|max:255',
             'email'    => 'required|email|max:255|unique:users,email,' . $user->id,

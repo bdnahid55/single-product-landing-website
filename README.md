@@ -174,7 +174,7 @@ php artisan serve
 ```
 Visit your store in your browser:
 - **Landing Page:** [http://127.0.0.1:8000](http://127.0.0.1:8000)
-- **Admin Login:** [http://127.0.0.1:8000/admin/login](http://127.0.0.1:8000/admin/login)
+- **Admin Login:** [http://127.0.0.1:8000/secure-portal](http://127.0.0.1:8000/secure-portal)
 - **Order Tracking:** [http://127.0.0.1:8000/track-order](http://127.0.0.1:8000/track-order)
 
 ---
@@ -184,7 +184,7 @@ Visit your store in your browser:
 ### Primary Administrator
 | Field | Value |
 |---|---|
-| **Admin Portal URL** | `http://yourdomain.com/admin/login` |
+| **Admin Portal URL** | `http://yourdomain.com/secure-portal` |
 | **Email Address** | `admin@gmail.com` |
 | **Password** | `password` |
 | **Default Role** | `Super Admin` |

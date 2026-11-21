@@ -157,6 +157,7 @@ class AuthController extends Controller
 
         Auth::login($user, $remember);
         $request->session()->regenerate();
+        session(['admin_last_activity' => time()]);
 
         $target = $user->can('view-dashboard')
             ? route('admin.dashboard')

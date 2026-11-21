@@ -132,8 +132,33 @@
           </div>
 
           <div class="alert alert-light border mt-4 mb-3">
-            <i class="fas fa-key text-warning mr-1"></i>
-            <strong>পাসওয়ার্ড পরিবর্তন (Password Change):</strong> বর্তমান পাসওয়ার্ড অপরিবর্তিত রাখতে চাইলে নিচের ঘরগুলো ফাঁকা রাখুন।
+            <i class="fas fa-shield-alt text-warning mr-1"></i>
+            <strong>পাসওয়ার্ড পরিবর্তন ও রি-অথেনটিকেশন (Password Change & Re-authentication):</strong>
+            নিরাপত্তার স্বার্থে নতুন পাসওয়ার্ড সেট করার পূর্বে আপনার বর্তমান পাসওয়ার্ড প্রদান করে রি-অথেনটিকেশন (Re-authentication) করা বাধ্যতামূলক। অপরিবর্তিত রাখতে চাইলে নিচের ঘরগুলো ফাঁকা রাখুন।
+          </div>
+
+          <!-- Current Password (Required for Re-authentication) -->
+          <div class="form-group mb-4">
+            <label for="current_password" class="font-weight-bold text-dark">
+              আপনার বর্তমান পাসওয়ার্ড (Current Password for Re-authentication)
+            </label>
+            <div class="input-group">
+              <div class="input-group-prepend">
+                <span class="input-group-text bg-light"><i class="fas fa-key text-warning"></i></span>
+              </div>
+              <input type="password" 
+                     name="current_password" 
+                     id="current_password" 
+                     class="form-control @error('current_password') is-invalid @enderror" 
+                     placeholder="নতুন পাসওয়ার্ড দিতে চাইলে এখানে আপনার বর্তমান পাসওয়ার্ডটি লিখুন"
+                     autocomplete="current-password">
+              @error('current_password')
+                <div class="invalid-feedback font-weight-bold">{{ $message }}</div>
+              @enderror
+            </div>
+            <small class="form-text text-muted">
+              <i class="fas fa-info-circle text-info mr-1"></i> নতুন পাসওয়ার্ড সংরক্ষণ করার পূর্বে এই ঘরে আপনার বর্তমান কার্যকর পাসওয়ার্ডটি দিয়ে যাচাই করুন।
+            </small>
           </div>
 
           <div class="row">
