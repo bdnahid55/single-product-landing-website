@@ -13,6 +13,7 @@ use App\Http\Controllers\Admin\SectionController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\BackupController;
+use App\Http\Controllers\SSLCommerzPaymentController;
 
 /*
 |--------------------------------------------------------------------------
@@ -24,9 +25,18 @@ Route::post('/orders', [OrderController::class, 'store'])
     ->middleware('throttle:orders')
     ->name('orders.store');
 Route::get('/orders/{id}/success', [OrderController::class, 'success'])->name('orders.success');
+Route::get('/orders/{order}/pay', [SSLCommerzPaymentController::class, 'initiate'])->name('orders.pay');
+Route::get('/orders/{order}/payment-status', [SSLCommerzPaymentController::class, 'paymentStatus'])->name('orders.payment_status');
+Route::post('/orders/{order}/convert-to-cod', [SSLCommerzPaymentController::class, 'convertToCod'])->name('orders.convert_to_cod');
 Route::match(['get', 'post'], '/track-order', [OrderController::class, 'track'])
     ->middleware('throttle:order-tracking')
     ->name('order.track');
+
+// SSLCommerz Payment Gateway Callbacks
+Route::match(['get', 'post'], '/sslcommerz/success', [SSLCommerzPaymentController::class, 'success'])->name('sslcommerz.success');
+Route::match(['get', 'post'], '/sslcommerz/fail', [SSLCommerzPaymentController::class, 'fail'])->name('sslcommerz.fail');
+Route::match(['get', 'post'], '/sslcommerz/cancel', [SSLCommerzPaymentController::class, 'cancel'])->name('sslcommerz.cancel');
+Route::match(['get', 'post'], '/sslcommerz/ipn', [SSLCommerzPaymentController::class, 'ipn'])->name('sslcommerz.ipn');
 
 Route::get('/sitemap.xml', function () {
     return response()->view('sitemap')->header('Content-Type', 'application/xml');

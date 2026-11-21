@@ -267,6 +267,13 @@ class DatabaseSeeder extends Seeder
             // Selling Mode: 'multiple' (all packages + selector) vs 'single' (focused single product)
             ['key' => 'store_mode', 'value' => 'multiple', 'group' => 'store_mode'],
             ['key' => 'single_product_id', 'value' => '1', 'group' => 'store_mode'],
+
+            // SSLCommerz Payment Gateway
+            ['key' => 'sslcommerz_enabled', 'value' => '1', 'group' => 'payment_gateway'],
+            ['key' => 'sslcommerz_store_id', 'value' => 'bongo6830d3864bcb8', 'group' => 'payment_gateway'],
+            ['key' => 'sslcommerz_store_password', 'value' => 'bongo6830d3864bcb8@ssl', 'group' => 'payment_gateway'],
+            ['key' => 'sslcommerz_mode', 'value' => 'sandbox', 'group' => 'payment_gateway'],
+            ['key' => 'sslcommerz_currency', 'value' => 'BDT', 'group' => 'payment_gateway'],
         ];
 
         foreach ($settings as $item) {

@@ -5,10 +5,11 @@
 [![PHP Version](https://img.shields.io/badge/PHP-%3E%3D%208.2-777BB4?style=for-the-badge&logo=php&logoColor=white)](https://php.net)
 [![Database](https://img.shields.io/badge/MySQL-8.0%2B-4479A1?style=for-the-badge&logo=mysql&logoColor=white)](https://mysql.com)
 [![Bootstrap](https://img.shields.io/badge/Bootstrap-5.3-7952B3?style=for-the-badge&logo=bootstrap&logoColor=white)](https://getbootstrap.com)
-[![Test Suite](https://img.shields.io/badge/Tests-51%20Passed%20(370%20Assertions)-success?style=for-the-badge&logo=checkmarx&logoColor=white)](tests)
+[![Test Suite](https://img.shields.io/badge/Tests-56%20Passed%20(400%20Assertions)-success?style=for-the-badge&logo=checkmarx&logoColor=white)](tests)
+[![Payment Gateway](https://img.shields.io/badge/SSLCommerz-Official%20PHP%20Integrated-008080?style=for-the-badge&logo=visa&logoColor=white)](https://sslcommerz.com)
 [![Deployment](https://img.shields.io/badge/Shared%20Hosting-cPanel%20Ready-F1A80A?style=for-the-badge&logo=cpanel&logoColor=white)](https://cpanel.net)
 
-A production-ready, ultra high-converting single and multi-product e-commerce landing page built specifically for honey, organic foods, and direct-to-consumer (D2C) businesses in Bangladesh. Powered by **Laravel 13**, **Bootstrap 5**, and **AdminLTE 3**, featuring Cash on Delivery (COD) checkout, live parcel tracking, multi-layer bot & spam rate-limiting, Spatie Role-Based Access Control (RBAC), Admin 2FA (OTP), on-demand media & database backups, and shared hosting (cPanel) zero-symlink file uploads.
+A production-ready, ultra high-converting single and multi-product e-commerce landing page built specifically for honey, organic foods, and direct-to-consumer (D2C) businesses in Bangladesh. Powered by **Laravel 13**, **Bootstrap 5**, and **AdminLTE 3**, featuring **Cash on Delivery (COD)** + **SSLCommerz (bKash, Nagad, Rocket, Cards)** payment gateways, live parcel tracking, multi-layer bot & spam rate-limiting, Spatie Role-Based Access Control (RBAC), Admin 2FA (OTP), on-demand media & database backups, and shared hosting (cPanel) zero-symlink file uploads.
 
 ---
 
@@ -31,7 +32,8 @@ A production-ready, ultra high-converting single and multi-product e-commerce la
 
 ### 🛍️ Customer Frontend (High-Converting Landing Page)
 - **Single & Multi-Product Mode (Funnel Switcher):** Easily switch between a laser-focused Single Product Landing Funnel or an interactive Multi-Product Honey Package Picker from the Admin Panel.
-- **Cash on Delivery (COD) Checkout:** Streamlined, frictionless single-click order form with zero unnecessary steps.
+- **Cash on Delivery (COD) & Online Payment (SSLCommerz):** Seamlessly supports Cash on Delivery as well as instant digital payments via bKash, Nagad, Rocket, Upay, Visa, MasterCard, and DBBL Nexus through SSLCommerz.
+- **Official SSLCommerz PHP Integration:** Built following the official [`sslcommerz/SSLCommerz-PHP`](https://github.com/sslcommerz/SSLCommerz-PHP) standard library with complete server-side order validation (`orderValidate`), IPN webhook, and CSRF token handling.
 - **Dynamic Delivery Charge Calculation:** Instant toggle between "Inside Dhaka" (৳80 default) and "Outside Dhaka" (৳130 default) with live JavaScript total calculation.
 - **Public Order Tracking (`/track-order`):** Customers can track their real-time parcel fulfillment and delivery status using their Order ID (e.g. `ORD-261121-16D285`) and Phone Number.
 - **Stock & Availability Safeguards:** Prevents checkout of out-of-stock or unpublished products; notifies customers if an item is sold out.
@@ -381,6 +383,7 @@ Navigate to **Admin $\rightarrow$ Settings**:
 - **Delivery Charges:** Update rates for Inside Dhaka (default ৳80) and Outside Dhaka (default ৳130).
 - **SEO & Social:** Meta title, meta description, Google Search Console token, Google Analytics 4 ID, Meta (Facebook) Pixel ID.
 - **Email (SMTP):** Configure SMTP settings directly in the database. Use the built-in **"Send Test Email"** tool to verify server connectivity without having to place test orders.
+- **Payment Gateway (SSLCommerz):** Configure your SSLCommerz Store ID (`bongo6830d3864bcb8`), Store Password, and Environment Mode (Sandbox vs Live) directly from the settings panel.
 
 ### 5. Automated Backups
 Navigate to **Admin $\rightarrow$ Backups**:
@@ -400,8 +403,13 @@ Run all feature and unit tests with:
 php artisan test
 ```
 
-### Test Coverage Highlights (51 Tests, 370 Assertions)
+### Test Coverage Highlights (56 Tests, 400 Assertions)
 - `test_guest_can_order_product_with_cod_and_stock_is_decremented`
+- `test_guest_can_order_with_sslcommerz_and_redirects_to_pay`
+- `test_sslcommerz_initiate_redirects_to_gateway_page_url`
+- `test_sslcommerz_success_callback_validates_and_marks_order_paid`
+- `test_sslcommerz_fail_and_cancel_callbacks`
+- `test_admin_settings_can_update_sslcommerz_configuration`
 - `test_cannot_order_inactive_or_out_of_stock_products`
 - `test_honeypot_field_blocks_automated_bot_spam`
 - `test_orders_route_rate_limiting_protects_against_spam`

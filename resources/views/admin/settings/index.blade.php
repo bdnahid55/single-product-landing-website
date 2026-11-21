@@ -79,6 +79,11 @@
               <i class="fas fa-envelope-open-text mr-1 text-danger"></i> 11. Mail / SMTP (ইমেইল ও ওটিপি সেটিংস)
             </a>
           </li>
+          <li class="nav-item">
+            <a class="nav-link font-weight-bold" id="payment-tab" data-toggle="pill" href="#payment-pane" role="tab">
+              <i class="fas fa-credit-card mr-1 text-primary"></i> 12. Payment Gateway (SSLCommerz)
+            </a>
+          </li>
         </ul>
       </div>
 
@@ -1114,6 +1119,106 @@
                 </div>
               </div>
 
+            </div>
+
+            <!-- 12. Payment Gateway (SSLCommerz) -->
+            <div class="tab-pane fade" id="payment-pane" role="tabpanel">
+              <div class="callout callout-info py-2 mb-4">
+                <h5><i class="fas fa-credit-card mr-1 text-primary"></i> SSLCommerz পেমেন্ট গেটওয়ে কনফিগারেশন</h5>
+                <p class="mb-0 text-muted">
+                  অনলাইন পেমেন্ট গেটওয়ের মাধ্যমে বিকাশ, নগদ, রকেট এবং ভিসা/মাস্টারকার্ডের মাধ্যমে তাৎক্ষণিক মূল্য পরিশোধের সুবিধা চালু বা বন্ধ রাখুন।
+                </p>
+              </div>
+
+              <div class="row">
+                <!-- Gateway Status Toggle -->
+                <div class="col-md-12 mb-4">
+                  <div class="card card-outline card-primary shadow-sm p-3 bg-light">
+                    <div class="custom-control custom-switch">
+                      <input type="hidden" name="sslcommerz_enabled" value="0">
+                      <input type="checkbox" 
+                             name="sslcommerz_enabled" 
+                             class="custom-control-input" 
+                             id="sslcommerz_enabled" 
+                             value="1" 
+                             {{ ($settings['sslcommerz_enabled'] ?? '1') == '1' ? 'checked' : '' }}>
+                      <label class="custom-control-label font-weight-bold text-dark" for="sslcommerz_enabled">
+                        <i class="fas fa-toggle-on text-success mr-1"></i> SSLCommerz পেমেন্ট গেটওয়ে সক্রিয় রাখুন (Enable Online Payment)
+                      </label>
+                      <small class="form-text text-muted">
+                        এটি বন্ধ থাকলে চেকআউট পেজে শুধুমাত্র 'ক্যাশ অন ডেলিভারি' অপশন থাকবে।
+                      </small>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Store ID -->
+                <div class="col-md-6 mb-3">
+                  <label for="sslcommerz_store_id" class="font-weight-bold">
+                    <i class="fas fa-id-card text-info mr-1"></i> Store ID:
+                  </label>
+                  <input type="text" 
+                         name="sslcommerz_store_id" 
+                         id="sslcommerz_store_id" 
+                         class="form-control" 
+                         value="{{ $settings['sslcommerz_store_id'] ?? 'bongo6830d3864bcb8' }}" 
+                         placeholder="e.g. bongo6830d3864bcb8">
+                  <small class="form-text text-muted">SSLCommerz থেকে প্রাপ্ত আপনার মার্চেন্ট স্টোর আইডি।</small>
+                </div>
+
+                <!-- Store Password -->
+                <div class="col-md-6 mb-3">
+                  <label for="sslcommerz_store_password" class="font-weight-bold">
+                    <i class="fas fa-key text-warning mr-1"></i> Store Password:
+                  </label>
+                  <input type="text" 
+                         name="sslcommerz_store_password" 
+                         id="sslcommerz_store_password" 
+                         class="form-control" 
+                         value="{{ $settings['sslcommerz_store_password'] ?? 'bongo6830d3864bcb8@ssl' }}" 
+                         placeholder="e.g. bongo6830d3864bcb8@ssl">
+                  <small class="form-text text-muted">SSLCommerz মার্চেন্ট স্টোর পাসওয়ার্ড।</small>
+                </div>
+
+                <!-- Environment Mode -->
+                <div class="col-md-6 mb-3">
+                  <label for="sslcommerz_mode" class="font-weight-bold">
+                    <i class="fas fa-sliders-h text-primary mr-1"></i> Environment Mode:
+                  </label>
+                  <select name="sslcommerz_mode" id="sslcommerz_mode" class="form-control">
+                    <option value="sandbox" {{ ($settings['sslcommerz_mode'] ?? 'sandbox') === 'sandbox' ? 'selected' : '' }}>
+                      Sandbox (টেস্টিং মোড - Test Mode)
+                    </option>
+                    <option value="live" {{ ($settings['sslcommerz_mode'] ?? 'sandbox') === 'live' ? 'selected' : '' }}>
+                      Live (প্রোডাকশন মোড - Real Transactions)
+                    </option>
+                  </select>
+                  <small class="form-text text-muted">টেস্টিংয়ের সময় Sandbox রাখুন, রিয়েল পেমেন্টের জন্য Live নির্বাচন করুন।</small>
+                </div>
+
+                <!-- Currency -->
+                <div class="col-md-6 mb-3">
+                  <label for="sslcommerz_currency" class="font-weight-bold">
+                    <i class="fas fa-coins text-secondary mr-1"></i> Currency:
+                  </label>
+                  <input type="text" 
+                         name="sslcommerz_currency" 
+                         id="sslcommerz_currency" 
+                         class="form-control" 
+                         value="{{ $settings['sslcommerz_currency'] ?? 'BDT' }}" 
+                         readonly>
+                  <small class="form-text text-muted">ডিফল্ট কারেন্সি BDT (বাংলাদেশী টাকা)।</small>
+                </div>
+              </div>
+
+              <!-- Integration Info Callout -->
+              <div class="alert alert-light border mt-3 p-3">
+                <h6 class="font-weight-bold text-dark mb-2"><i class="fas fa-shield-alt text-success mr-1"></i> SSLCommerz কলব্যাক ইউআরএল তথ্য (SSLCommerz Callback & IPN URLs):</h6>
+                <p class="small text-muted mb-2">SSLCommerz মার্চেন্ট প্যানেলে আইপিএন সেটআপ করতে নিচের ইউআরএলটি দিন:</p>
+                <code class="d-block p-2 bg-white border rounded text-dark font-weight-bold mb-2">
+                  {{ url('/sslcommerz/ipn') }}
+                </code>
+              </div>
             </div>
 
           </div>

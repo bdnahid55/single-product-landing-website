@@ -126,6 +126,11 @@ class OrderController extends Controller
 
         $totalAmount = $subtotal + $deliveryCharge;
 
+        $paymentMethod = $validated['payment_method'] ?? 'cod';
+        if ($paymentMethod === 'sslcommerz' && Setting::get('sslcommerz_enabled', '1') === '0') {
+            $paymentMethod = 'cod';
+        }
+
         DB::beginTransaction();
         try {
             $order = Order::create([
@@ -137,7 +142,8 @@ class OrderController extends Controller
                 'delivery_charge' => $deliveryCharge,
                 'subtotal'        => $subtotal,
                 'total_amount'    => $totalAmount,
-                'payment_method'  => 'cod',
+                'currency'        => 'BDT',
+                'payment_method'  => $paymentMethod,
                 'payment_status'  => 'unpaid',
                 'order_status'    => 'pending',
                 'customer_notes'  => $validated['customer_notes'] ?? null,
@@ -162,6 +168,10 @@ class OrderController extends Controller
 
             DB::commit();
 
+            if ($order->payment_method === 'sslcommerz') {
+                return redirect()->route('orders.pay', $order->id);
+            }
+
             return redirect()->route('orders.success', $order->id)
                 ->with('success', 'আপনার অর্ডারটি সফলভাবে সম্পন্ন হয়েছে!');
         } catch (\Exception $e) {
@@ -176,6 +186,13 @@ class OrderController extends Controller
     public function success($id)
     {
         $order = Order::with('items')->findOrFail($id);
+
+        // Guard: An online payment order must not be shown as completed/accepted until paid!
+        if ($order->payment_method === 'sslcommerz' && $order->payment_status !== 'paid') {
+            return redirect()->route('orders.payment_status', $order->id)
+                ->with('warning', 'অনলাইন পেমেন্ট এখনও সম্পন্ন করা হয়নি। অনুগ্রহ করে পেমেন্ট সম্পন্ন করুন অথবা ক্যাশ অন ডেলিভারি (COD) নির্বাচন করুন।');
+        }
+
         $settings = Setting::getAllSettings();
 
         return view('order-success', compact('order', 'settings'));

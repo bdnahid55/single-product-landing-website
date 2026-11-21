@@ -1412,4 +1412,147 @@ class OrderAndAdminTest extends TestCase
         $resp->assertStatus(200);
         $resp->assertSee('বর্তমানে কোনো পণ্য বিক্রয়ের জন্য সক্রিয় নেই');
     }
+
+    public function test_guest_can_order_with_sslcommerz_and_redirects_to_pay(): void
+    {
+        $resp = $this->post('/orders', [
+            'customer_name'    => 'অনলাইন ক্রেতা',
+            'customer_phone'   => '01712345678',
+            'customer_address' => 'গুলশান, ঢাকা',
+            'delivery_area'    => 'inside_dhaka',
+            'payment_method'   => 'sslcommerz',
+            'product_id'       => $this->product->id,
+            'quantity'         => 1,
+        ]);
+
+        $order = Order::where('customer_phone', '01712345678')->latest()->first();
+        $this->assertNotNull($order);
+        $this->assertEquals('sslcommerz', $order->payment_method);
+        $this->assertEquals('unpaid', $order->payment_status);
+        $resp->assertRedirect(route('orders.pay', $order->id));
+    }
+
+    public function test_sslcommerz_initiate_redirects_to_gateway_page_url(): void
+    {
+        $order = Order::create([
+            'order_number'    => 'ORD-SSL-INIT-01',
+            'customer_name'   => 'অনলাইন ক্রেতা',
+            'customer_phone'  => '01712345678',
+            'customer_address'=> 'ধানমন্ডি, ঢাকা',
+            'delivery_area'   => 'inside_dhaka',
+            'subtotal'        => 1050.00,
+            'delivery_charge' => 80.00,
+            'total_amount'    => 1130.00,
+            'currency'        => 'BDT',
+            'payment_method'  => 'sslcommerz',
+            'payment_status'  => 'unpaid',
+            'order_status'    => 'pending',
+        ]);
+
+        $mockSsl = \Mockery::mock(\App\Library\SslCommerz\SslCommerzNotification::class);
+        $mockSsl->shouldReceive('makePayment')
+            ->once()
+            ->with(\Mockery::on(function ($postData) {
+                return !empty($postData['ship_name']) && !empty($postData['ship_city']) && $postData['shipping_method'] === 'YES';
+            }), 'hosted')
+            ->andReturn([
+                'status'         => 'SUCCESS',
+                'GatewayPageURL' => 'https://sandbox.sslcommerz.com/EasyCheckOut/testcde123',
+            ]);
+        $this->app->instance(\App\Library\SslCommerz\SslCommerzNotification::class, $mockSsl);
+
+        $response = $this->get(route('orders.pay', $order->id));
+        $response->assertRedirect('https://sandbox.sslcommerz.com/EasyCheckOut/testcde123');
+    }
+
+    public function test_sslcommerz_success_callback_validates_and_marks_order_paid(): void
+    {
+        $order = Order::create([
+            'order_number'    => 'ORD-SSL-TEST-01',
+            'customer_name'   => 'অনলাইন ক্রেতা',
+            'customer_phone'  => '01712345678',
+            'customer_address'=> 'ধানমন্ডি, ঢাকা',
+            'delivery_area'   => 'inside_dhaka',
+            'subtotal'        => 1050.00,
+            'delivery_charge' => 80.00,
+            'total_amount'    => 1130.00,
+            'currency'        => 'BDT',
+            'payment_method'  => 'sslcommerz',
+            'payment_status'  => 'unpaid',
+            'order_status'    => 'pending',
+        ]);
+
+        $mockSsl = \Mockery::mock(\App\Library\SslCommerz\SslCommerzNotification::class);
+        $mockSsl->shouldReceive('orderValidate')->once()->andReturn(true);
+        $this->app->instance(\App\Library\SslCommerz\SslCommerzNotification::class, $mockSsl);
+
+        $response = $this->post('/sslcommerz/success', [
+            'tran_id'      => $order->order_number,
+            'val_id'       => 'VALID-SSL-123456',
+            'amount'       => '1130.00',
+            'card_type'    => 'BKASH-BKash',
+            'bank_tran_id' => 'BANK-TRX-9988',
+        ]);
+
+        $response->assertRedirect(route('orders.success', $order->id));
+        $this->assertEquals('paid', $order->fresh()->payment_status);
+        $this->assertEquals('VALID-SSL-123456', $order->fresh()->transaction_id);
+        $this->assertEquals('BKASH-BKash', $order->fresh()->card_type);
+    }
+
+    public function test_sslcommerz_fail_and_cancel_callbacks(): void
+    {
+        $order = Order::create([
+            'order_number'    => 'ORD-SSL-FAIL-01',
+            'customer_name'   => 'ব্যর্থ ক্রেতা',
+            'customer_phone'  => '01712345678',
+            'customer_address'=> 'ঢাকা',
+            'delivery_area'   => 'inside_dhaka',
+            'subtotal'        => 1050.00,
+            'delivery_charge' => 80.00,
+            'total_amount'    => 1130.00,
+            'currency'        => 'BDT',
+            'payment_method'  => 'sslcommerz',
+            'payment_status'  => 'unpaid',
+            'order_status'    => 'pending',
+        ]);
+
+        $failResp = $this->post('/sslcommerz/fail', [
+            'tran_id' => $order->order_number,
+            'error'   => 'Insufficient funds',
+        ]);
+        $failResp->assertRedirect(route('orders.payment_status', $order->id));
+        $this->assertEquals('failed', $order->fresh()->payment_status);
+
+        $cancelResp = $this->post('/sslcommerz/cancel', [
+            'tran_id' => $order->order_number,
+        ]);
+        $cancelResp->assertRedirect(route('orders.payment_status', $order->id));
+        $this->assertEquals('cancelled', $order->fresh()->payment_status);
+
+        // Visiting orders.success for an unpaid online order redirects to payment status
+        $successResp = $this->get(route('orders.success', $order->id));
+        $successResp->assertRedirect(route('orders.payment_status', $order->id));
+
+        // Converting order to COD succeeds and redirects to orders.success
+        $codResp = $this->post(route('orders.convert_to_cod', $order->id));
+        $codResp->assertRedirect(route('orders.success', $order->id));
+        $this->assertEquals('cod', $order->fresh()->payment_method);
+        $this->assertEquals('unpaid', $order->fresh()->payment_status);
+    }
+
+    public function test_admin_settings_can_update_sslcommerz_configuration(): void
+    {
+        $resp = $this->actingAs($this->admin)->put('/admin/settings', [
+            'sslcommerz_enabled'        => '1',
+            'sslcommerz_store_id'       => 'bongo6830d3864bcb8',
+            'sslcommerz_store_password' => 'bongo6830d3864bcb8@ssl',
+            'sslcommerz_mode'           => 'sandbox',
+        ]);
+        $resp->assertSessionHas('success');
+
+        $this->assertEquals('bongo6830d3864bcb8', \App\Models\Setting::get('sslcommerz_store_id'));
+        $this->assertEquals('bongo6830d3864bcb8@ssl', \App\Models\Setting::get('sslcommerz_store_password'));
+        $this->assertEquals('sandbox', \App\Models\Setting::get('sslcommerz_mode'));
+    }
 }

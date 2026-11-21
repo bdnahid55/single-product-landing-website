@@ -35,8 +35,28 @@
           </div>
           <div class="d-flex justify-content-between mb-2">
             <span class="text-muted">পেমেন্ট মেথড:</span>
-            <span class="badge bg-secondary">ক্যাশ অন ডেলিভারি</span>
+            @if($order->payment_method === 'sslcommerz')
+              <span class="badge bg-success">
+                <i class="bi bi-check-circle-fill me-1"></i> অনলাইন পেমেন্ট (SSLCommerz) - পরিশোধিত (Paid)
+              </span>
+            @else
+              <span class="badge bg-secondary">
+                <i class="bi bi-cash me-1"></i> ক্যাশ অন ডেলিভারি (COD) - ডেলিভারির সময় প্রদেয়
+              </span>
+            @endif
           </div>
+          @if($order->transaction_id)
+          <div class="d-flex justify-content-between mb-2">
+            <span class="text-muted">ট্রানজেকশন আইডি:</span>
+            <span class="fw-bold text-success font-monospace">{{ $order->transaction_id }}</span>
+          </div>
+          @endif
+          @if($order->card_type)
+          <div class="d-flex justify-content-between mb-2">
+            <span class="text-muted">পেমেন্ট মাধ্যম / কার্ড:</span>
+            <span class="fw-bold text-dark">{{ $order->card_type }}</span>
+          </div>
+          @endif
         </div>
 
         <div class="table-responsive mb-4">

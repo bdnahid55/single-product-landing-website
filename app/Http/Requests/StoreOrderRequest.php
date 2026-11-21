@@ -41,6 +41,7 @@ class StoreOrderRequest extends FormRequest
             'customer_address'    => ['required', 'string', 'max:255'],
             'delivery_area'       => ['required', 'in:inside_dhaka,outside_dhaka'],
             'customer_notes'      => ['nullable', 'string', 'max:255'],
+            'payment_method'      => ['nullable', 'string', 'in:cod,sslcommerz'],
             'product_id'          => ['nullable', 'exists:products,id'],
             'quantity'            => ['nullable', 'integer', 'min:1', 'max:50'],
             'selected_products'   => ['nullable', 'array'],

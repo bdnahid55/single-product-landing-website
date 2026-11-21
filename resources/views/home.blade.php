@@ -910,14 +910,40 @@
 
             <!-- Payment Method -->
             <div class="payment-section-box">
-              <label class="order-input-label">পেমেন্ট মেথড</label>
-              <div class="payment-radio-box">
-                <div class="delivery-radio-dot" style="border-color: var(--primary-green, #16a34a);">
-                  <span style="display:block; width:8px; height:8px; background:var(--primary-green, #16a34a); border-radius:50%;"></span>
+              <label class="order-input-label mb-2 d-block">পেমেন্ট মেথড নির্বাচন করুন</label>
+
+              @php
+                $sslEnabled = ($settings['sslcommerz_enabled'] ?? '1') == '1';
+              @endphp
+
+              <!-- Cash on Delivery -->
+              <label class="delivery-radio-card active mb-2 d-flex align-items-center justify-content-between p-3 border rounded-3" style="cursor: pointer;" id="paymentCodCard">
+                <div class="d-flex align-items-center gap-2">
+                  <input type="radio" name="payment_method" value="cod" id="payment_cod" class="form-check-input mt-0" checked onchange="window.onPaymentMethodChange('cod')">
+                  <span class="fw-bold text-dark">ক্যাশ অন ডেলিভারি (Cash on Delivery)</span>
                 </div>
-                <span class="fw-bold">ক্যাশ অন ডেলিভারি (Cash on Delivery)</span>
-              </div>
-              <div class="payment-note-box">
+                <span class="badge bg-light text-secondary border">পণ্য হাতে পেয়ে টাকা দিন</span>
+              </label>
+
+              @if($sslEnabled)
+              <!-- SSLCommerz Online Payment -->
+              <label class="delivery-radio-card mb-2 d-flex align-items-center justify-content-between p-3 border rounded-3" style="cursor: pointer;" id="paymentSslCard">
+                <div class="d-flex align-items-center gap-2">
+                  <input type="radio" name="payment_method" value="sslcommerz" id="payment_sslcommerz" class="form-check-input mt-0" onchange="window.onPaymentMethodChange('sslcommerz')">
+                  <div>
+                    <span class="fw-bold text-dark d-block">অনলাইন পেমেন্ট (SSLCommerz)</span>
+                    <small class="text-muted">বিকাশ, নগদ, রকেট, কার্ড (ভিসা/মাস্টারকার্ড)</small>
+                  </div>
+                </div>
+                <div class="d-flex align-items-center gap-1">
+                  <span class="badge bg-danger text-white">bKash</span>
+                  <span class="badge bg-warning text-dark">Nagad</span>
+                  <span class="badge bg-primary text-white">Cards</span>
+                </div>
+              </label>
+              @endif
+
+              <div class="payment-note-box mt-2" id="paymentNoteBox">
                 পণ্য হাতে পেয়ে মূল্য পরিশোধ করবেন। কোনো অগ্রিম পেমেন্টের প্রয়োজন নেই।
               </div>
             </div>
@@ -1150,7 +1176,7 @@
     }
 
     // Delivery Area Selection Toggle (Shared for both Single & Multi modes)
-    const deliveryCards = document.querySelectorAll('.delivery-radio-card');
+    const deliveryCards = document.querySelectorAll('.delivery-options-group .delivery-radio-card');
     deliveryCards.forEach(card => {
       card.addEventListener('click', function () {
         deliveryCards.forEach(c => c.classList.remove('active'));
@@ -1166,6 +1192,26 @@
         }
       });
     });
+
+    // Payment Method Switcher
+    window.onPaymentMethodChange = function(method) {
+      const submitBtn = document.getElementById('btnSubmitOrder');
+      const noteBox = document.getElementById('paymentNoteBox');
+      const codCard = document.getElementById('paymentCodCard');
+      const sslCard = document.getElementById('paymentSslCard');
+
+      if (method === 'sslcommerz') {
+        if (codCard) codCard.classList.remove('active');
+        if (sslCard) sslCard.classList.add('active');
+        if (submitBtn) submitBtn.innerHTML = 'পেমেন্ট করুন (SSLCommerz) 💳';
+        if (noteBox) noteBox.innerHTML = '<i class="bi bi-shield-check text-success me-1"></i> নিরাপদ SSLCommerz গেটওয়ের মাধ্যমে বিকাশ, নগদ বা কার্ড দিয়ে তাৎক্ষণিক পেমেন্ট সম্পন্ন করুন।';
+      } else {
+        if (codCard) codCard.classList.add('active');
+        if (sslCard) sslCard.classList.remove('active');
+        if (submitBtn) submitBtn.innerHTML = 'অর্ডার কনফার্ম করুন 🍯';
+        if (noteBox) noteBox.innerHTML = 'পণ্য হাতে পেয়ে মূল্য পরিশোধ করবেন। কোনো অগ্রিম পেমেন্টের প্রয়োজন নেই।';
+      }
+    };
 
     // Prevent duplicate rapid submissions (double-click lock)
     const orderFormEl = document.getElementById('checkoutOrderForm');
