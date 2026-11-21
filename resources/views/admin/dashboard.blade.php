@@ -130,12 +130,21 @@
                   </td>
                   <td>{{ $order->created_at->timezone('Asia/Dhaka')->format('d M, Y h:i A') }}</td>
                   <td>
-                    <a href="{{ route('admin.orders.show', $order->id) }}" class="btn btn-xs btn-info" title="View Details">
-                      <i class="fas fa-eye"></i>
-                    </a>
-                    <a href="{{ route('admin.orders.invoice', $order->id) }}" target="_blank" class="btn btn-xs btn-secondary" title="Print Invoice">
-                      <i class="fas fa-print"></i>
-                    </a>
+                    <div class="btn-group btn-group-xs">
+                      <a href="{{ route('admin.orders.show', $order->id) }}" class="btn btn-xs btn-info" title="View Details">
+                        <i class="fas fa-eye"></i>
+                      </a>
+                      <a href="{{ route('admin.orders.invoice', $order->id) }}" target="_blank" class="btn btn-xs btn-secondary" title="Print Invoice">
+                        <i class="fas fa-print"></i>
+                      </a>
+                      <form action="{{ route('admin.orders.destroy', $order->id) }}" method="POST" class="d-inline" onsubmit="return confirm('আপনি কি নিশ্চিত যে এই অর্ডারটি (#{{ $order->order_number }}) সম্পূর্ণ ডিলিট করতে চান?');">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="btn btn-xs btn-danger" title="Delete Order">
+                          <i class="fas fa-trash-alt"></i>
+                        </button>
+                      </form>
+                    </div>
                   </td>
                 </tr>
               @empty

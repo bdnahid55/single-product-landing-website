@@ -118,6 +118,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
         Route::patch('/orders/{order}/status', [AdminOrderController::class, 'updateStatus'])
             ->middleware('can:update-order-status')
             ->name('orders.update-status');
+        Route::delete('/orders/{order}', [AdminOrderController::class, 'destroy'])
+            ->name('orders.destroy');
         Route::get('/orders/{order}/invoice', [AdminOrderController::class, 'invoice'])->name('orders.invoice');
     });
 

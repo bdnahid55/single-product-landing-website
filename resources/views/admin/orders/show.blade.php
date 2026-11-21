@@ -16,9 +16,16 @@
       <div class="card-header">
         <h3 class="card-title"><i class="fas fa-user mr-1"></i> Customer Information</h3>
         <div class="card-tools">
-          <a href="{{ route('admin.orders.invoice', $order->id) }}" target="_blank" class="btn btn-sm btn-secondary">
+          <a href="{{ route('admin.orders.invoice', $order->id) }}" target="_blank" class="btn btn-sm btn-secondary mr-1">
             <i class="fas fa-print mr-1"></i> Print Invoice
           </a>
+          <form action="{{ route('admin.orders.destroy', $order->id) }}" method="POST" class="d-inline" onsubmit="return confirm('আপনি কি নিশ্চিত যে এই অর্ডারটি (#{{ $order->order_number }}) সম্পূর্ণ ডিলিট করতে চান?');">
+            @csrf
+            @method('DELETE')
+            <button type="submit" class="btn btn-sm btn-danger" title="Delete Order">
+              <i class="fas fa-trash-alt mr-1"></i> Delete Order
+            </button>
+          </form>
         </div>
       </div>
       <div class="card-body">

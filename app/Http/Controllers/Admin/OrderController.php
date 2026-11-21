@@ -63,4 +63,25 @@ class OrderController extends Controller
         $settings = Setting::getAllSettings();
         return view('admin.orders.invoice', compact('order', 'settings'));
     }
+
+    /**
+     * Remove the specified order from storage.
+     */
+    public function destroy(Order $order)
+    {
+        $orderNumber = $order->order_number;
+
+        // Cascade delete associated items
+        $order->items()->delete();
+
+        // Delete order record
+        $order->delete();
+
+        if (url()->previous() === route('admin.orders.show', $order->id)) {
+            return redirect()->route('admin.orders.index')
+                ->with('success', "অর্ডার #{$orderNumber} সফলভাবে ডিলিট করা হয়েছে (Order deleted successfully).");
+        }
+
+        return back()->with('success', "অর্ডার #{$orderNumber} সফলভাবে ডিলিট করা হয়েছে (Order deleted successfully).");
+    }
 }
