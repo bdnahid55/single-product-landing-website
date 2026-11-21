@@ -91,16 +91,28 @@
           </div>
 
           <div class="row">
-            <div class="col-md-6">
-              <div class="custom-control custom-checkbox mt-2">
-                <input type="checkbox" name="is_featured" class="custom-control-input" id="is_featured" value="1" {{ old('is_featured', $product->is_featured) ? 'checked' : '' }}>
-                <label class="custom-control-label" for="is_featured">Set as Main Featured Product (Top Hero Section)</label>
+            <div class="col-md-6 mb-3">
+              <div class="card card-outline card-primary p-3 bg-light shadow-sm">
+                <div class="custom-control custom-switch">
+                  <input type="hidden" name="is_featured" value="0">
+                  <input type="checkbox" name="is_featured" class="custom-control-input" id="is_featured" value="1" {{ old('is_featured', $product->is_featured) ? 'checked' : '' }}>
+                  <label class="custom-control-label font-weight-bold text-dark" for="is_featured">
+                    <i class="fas fa-star text-warning mr-1"></i> Set as Main Featured Product
+                  </label>
+                </div>
+                <small class="text-muted mt-1 d-block">This product will be prominently highlighted in the top feature section of the landing page.</small>
               </div>
             </div>
-            <div class="col-md-6">
-              <div class="custom-control custom-checkbox mt-2">
-                <input type="checkbox" name="is_active" class="custom-control-input" id="is_active" value="1" {{ old('is_active', $product->is_active) ? 'checked' : '' }}>
-                <label class="custom-control-label" for="is_active">Publish on Website (Active)</label>
+            <div class="col-md-6 mb-3">
+              <div class="card card-outline card-success p-3 bg-light shadow-sm">
+                <div class="custom-control custom-switch">
+                  <input type="hidden" name="is_active" value="0">
+                  <input type="checkbox" name="is_active" class="custom-control-input" id="is_active" value="1" {{ old('is_active', $product->is_active) ? 'checked' : '' }}>
+                  <label class="custom-control-label font-weight-bold text-dark" for="is_active">
+                    <i class="fas fa-globe text-success mr-1"></i> Publish on Website (Active)
+                  </label>
+                </div>
+                <small class="text-muted mt-1 d-block">Uncheck to unpublish/hide this product from customer order selection and the homepage.</small>
               </div>
             </div>
           </div>

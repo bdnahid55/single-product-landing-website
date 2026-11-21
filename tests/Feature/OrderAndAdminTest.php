@@ -216,7 +216,44 @@ class OrderAndAdminTest extends TestCase
         $this->assertDatabaseHas('products', [
             'name' => 'স্পেশাল সুন্দরবন মধু (২ কেজি)',
             'sale_price' => 2000.00,
+            'is_active' => true,
         ]);
+    }
+
+    public function test_admin_can_deactivate_product_and_it_disappears_from_website(): void
+    {
+        // Initially product is active
+        $this->assertTrue($this->product->fresh()->is_active);
+        $initialHome = $this->get('/');
+        $initialHome->assertSee($this->product->name);
+
+        // Deactivate product by submitting is_active = 0 (or unchecking the checkbox)
+        $response = $this->actingAs($this->admin)->put("/admin/products/{$this->product->id}", [
+            'name'          => $this->product->name,
+            'weight'        => $this->product->weight,
+            'regular_price' => $this->product->regular_price,
+            'sale_price'    => $this->product->sale_price,
+            'stock'         => $this->product->stock,
+            'is_active'     => 0, // Unchecked
+            'is_featured'   => 0,
+        ]);
+
+        $response->assertRedirect(route('admin.products.index'));
+        $this->assertFalse((bool) $this->product->fresh()->is_active);
+
+        // Verify it disappears from website
+        $homeResponse = $this->get('/');
+        $homeResponse->assertStatus(200);
+        $homeResponse->assertDontSee('এই পণ্যটি কিনুন');
+
+        // Test quick 1-click toggle action
+        $toggleResponse = $this->actingAs($this->admin)->patch("/admin/products/{$this->product->id}/toggle-status");
+        $toggleResponse->assertRedirect();
+        $this->assertTrue((bool) $this->product->fresh()->is_active);
+
+        // Re-check website shows product again
+        $recheckHome = $this->get('/');
+        $recheckHome->assertSee($this->product->name);
     }
 
     public function test_admin_can_update_settings(): void

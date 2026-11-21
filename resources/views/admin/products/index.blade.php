@@ -66,12 +66,15 @@
                       <span class="text-muted">No</span>
                     @endif
                   </td>
-                  <td>
-                    @if($product->is_active)
-                      <span class="badge badge-success">Active</span>
-                    @else
-                      <span class="badge badge-secondary">Inactive</span>
-                    @endif
+                  <td class="text-center">
+                    <form action="{{ route('admin.products.toggle-status', $product->id) }}" method="POST" class="d-inline">
+                      @csrf
+                      @method('PATCH')
+                      <button type="submit" class="btn btn-xs {{ $product->is_active ? 'btn-success' : 'btn-secondary' }}" title="Click to {{ $product->is_active ? 'Unpublish/Deactivate' : 'Publish/Activate' }}">
+                        <i class="fas {{ $product->is_active ? 'fa-check-circle' : 'fa-times-circle' }} mr-1"></i>
+                        {{ $product->is_active ? 'Active' : 'Inactive' }}
+                      </button>
+                    </form>
                   </td>
                   <td>
                     <a href="{{ route('admin.products.edit', $product->id) }}" class="btn btn-sm btn-info" title="Edit">

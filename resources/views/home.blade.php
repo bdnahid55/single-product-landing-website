@@ -609,7 +609,7 @@
     <!-- ==========================================================================
          10. Interactive Order Form Section (#orderForm)
          ========================================================================== -->
-    @if(($settings['section_order_form_show'] ?? '1') == '1')
+    @if(($settings['section_order_form_show'] ?? '1') == '1' && $defaultProd)
     <section id="orderForm" class="order-form-section" aria-label="অর্ডার ফর্ম">
       <div class="container">
         <div class="order-form-card">
@@ -837,6 +837,7 @@
 @endsection
 
 @push('scripts')
+@if($defaultProd)
 <script>
   document.addEventListener('DOMContentLoaded', function () {
     // Current Active Product State
@@ -943,4 +944,5 @@
     updateOrderCalculations();
   });
 </script>
+@endif
 @endpush

@@ -67,7 +67,7 @@ class ProductController extends Controller
             'description'       => $validated['description'] ?? null,
             'image'             => $imagePath,
             'is_featured'       => $isFeatured,
-            'is_active'         => $request->boolean('is_active', true),
+            'is_active'         => $request->boolean('is_active'),
         ]);
 
         return redirect()->route('admin.products.index')
@@ -110,7 +110,7 @@ class ProductController extends Controller
             'badge'             => $validated['badge'] ?? null,
             'short_description' => $validated['short_description'] ?? null,
             'description'       => $validated['description'] ?? null,
-            'is_active'         => $request->boolean('is_active', true),
+            'is_active'         => $request->boolean('is_active'),
         ];
 
         if ($request->hasFile('image')) {
@@ -127,6 +127,18 @@ class ProductController extends Controller
 
         return redirect()->route('admin.products.index')
             ->with('success', 'Product updated successfully!');
+    }
+
+    /**
+     * Quick toggle for product active status.
+     */
+    public function toggleStatus(Product $product)
+    {
+        $newStatus = !$product->is_active;
+        $product->update(['is_active' => $newStatus]);
+
+        $statusLabel = $newStatus ? 'Published (Active)' : 'Unpublished (Inactive)';
+        return back()->with('success', "Product '{$product->name}' is now {$statusLabel}!");
     }
 
     /**
