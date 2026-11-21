@@ -217,6 +217,22 @@ class SectionController extends Controller
     {
         $sections = self::getSectionsRegistry();
 
+        $validationRules = [];
+        foreach ($sections as $sec) {
+            $validationRules[$sec['key']] = 'nullable|in:0,1';
+            if (!empty($sec['has_colors'])) {
+                if (!empty($sec['bg_key'])) {
+                    $validationRules[$sec['bg_key']] = ['nullable', 'string', 'max:20', 'regex:/^#([A-Fa-f0-9]{3}|[A-Fa-f0-9]{6})$/'];
+                }
+                if (!empty($sec['color_key'])) {
+                    $validationRules[$sec['color_key']] = ['nullable', 'string', 'max:20', 'regex:/^#([A-Fa-f0-9]{3}|[A-Fa-f0-9]{6})$/'];
+                }
+            }
+        }
+        $request->validate($validationRules, [
+            '*.regex' => 'কালার কোডটি অবশ্যই বৈধ হেক্সাডেসিমাল কোড হতে হবে (যেমন: #ffffff বা #11827)।',
+        ]);
+
         foreach ($sections as $sec) {
             $key = $sec['key'];
             // If request has value, use it; otherwise default to '0' if explicitly submitted through form

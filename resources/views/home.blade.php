@@ -720,6 +720,17 @@
           <form id="checkoutOrderForm" action="{{ route('orders.store') }}" method="POST">
             @csrf
 
+            @if ($errors->any())
+              <div class="alert alert-danger shadow-sm mb-4" role="alert">
+                <div class="fw-bold mb-1"><i class="bi bi-exclamation-triangle-fill me-2"></i>অর্ডার ফর্মে কিছু ত্রুটি পাওয়া গেছে:</div>
+                <ul class="mb-0 ps-3">
+                  @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                  @endforeach
+                </ul>
+              </div>
+            @endif
+
             <!-- Header 1: Selected Products -->
             <div class="form-header-bar">
               নির্বাচিত পণ্যসমূহ

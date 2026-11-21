@@ -1219,4 +1219,44 @@ class OrderAndAdminTest extends TestCase
         $uploadsDisk = config('filesystems.disks.uploads');
         $this->assertEquals(public_path('uploads'), $uploadsDisk['root']);
     }
+
+    public function test_server_side_validation_fails_on_empty_and_invalid_order_fields(): void
+    {
+        // 1. Completely empty submission
+        $emptyResp = $this->post('/orders', []);
+        $emptyResp->assertSessionHasErrors(['customer_name', 'customer_phone', 'customer_address', 'delivery_area']);
+
+        // 2. Invalid phone number format (e.g. letters or wrong digit count)
+        $invalidPhoneResp = $this->post('/orders', [
+            'customer_name'    => 'হাসান মাহমুদ',
+            'customer_phone'   => 'invalid-phone-123',
+            'customer_address' => 'ঢাকা',
+            'delivery_area'    => 'inside_dhaka',
+        ]);
+        $invalidPhoneResp->assertSessionHasErrors(['customer_phone']);
+
+        // 3. Invalid delivery area option
+        $invalidAreaResp = $this->post('/orders', [
+            'customer_name'    => 'হাসান মাহমুদ',
+            'customer_phone'   => '01712345678',
+            'customer_address' => 'ঢাকা',
+            'delivery_area'    => 'mars_delivery',
+        ]);
+        $invalidAreaResp->assertSessionHasErrors(['delivery_area']);
+    }
+
+    public function test_server_side_validation_validates_section_colors_strictly(): void
+    {
+        // Invalid hex code (e.g. CSS injection or bad format)
+        $resp = $this->actingAs($this->admin)->put('/admin/sections', [
+            'section_problem_bg' => 'invalid-color-code',
+        ]);
+        $resp->assertSessionHasErrors(['section_problem_bg']);
+
+        // Valid hex code succeeds
+        $validResp = $this->actingAs($this->admin)->put('/admin/sections', [
+            'section_problem_bg' => '#e2f1e6',
+        ]);
+        $validResp->assertSessionHasNoErrors();
+    }
 }

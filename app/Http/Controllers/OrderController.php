@@ -7,6 +7,7 @@ use App\Models\OrderItem;
 use App\Models\Product;
 use App\Models\Setting;
 use Illuminate\Http\Request;
+use App\Http\Requests\StoreOrderRequest;
 use Illuminate\Support\Facades\DB;
 
 class OrderController extends Controller
@@ -14,21 +15,9 @@ class OrderController extends Controller
     /**
      * Store a newly created order in storage.
      */
-    public function store(Request $request)
+    public function store(StoreOrderRequest $request)
     {
-        $validated = $request->validate([
-            'customer_name'       => 'required|string|max:255',
-            'customer_phone'      => 'required|string|max:20',
-            'customer_address'    => 'required|string|max:1000',
-            'delivery_area'       => 'required|in:inside_dhaka,outside_dhaka',
-            'customer_notes'      => 'nullable|string|max:1000',
-            'product_id'          => 'nullable|exists:products,id',
-            'quantity'            => 'nullable|integer|min:1|max:50',
-            'selected_products'   => 'nullable|array',
-            'selected_products.*' => 'exists:products,id',
-            'quantities'          => 'nullable|array',
-            'items'               => 'nullable|array',
-        ]);
+        $validated = $request->validated();
 
         $orderItemsData = [];
         $subtotal = 0;
@@ -96,7 +85,9 @@ class OrderController extends Controller
         }
 
         if (empty($orderItemsData)) {
-            return back()->withInput()->with('error', 'অনুগ্রহ করে অন্তত একটি পণ্য নির্বাচন করুন।');
+            return back()->withInput()
+                ->withErrors(['product' => 'অনুগ্রহ করে অর্ডার করার জন্য অন্তত একটি পণ্য নির্বাচন করুন।'])
+                ->with('error', 'অনুগ্রহ করে অন্তত একটি পণ্য নির্বাচন করুন।');
         }
 
         $deliveryCharge = $validated['delivery_area'] === 'inside_dhaka'

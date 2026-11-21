@@ -41,6 +41,10 @@ class SettingController extends Controller
             'gallery_img3_file'        => ['nullable', 'file', 'mimes:jpeg,png,jpg,webp', 'max:4096'],
             'gallery_img4_file'        => ['nullable', 'file', 'mimes:jpeg,png,jpg,webp', 'max:4096'],
             'video_poster_file'        => ['nullable', 'file', 'mimes:jpeg,png,jpg,webp', 'max:4096'],
+            'delivery_inside_dhaka'    => ['nullable', 'numeric', 'min:0'],
+            'delivery_outside_dhaka'   => ['nullable', 'numeric', 'min:0'],
+            'mail_port'                => ['nullable', 'integer', 'between:1,65535'],
+            'mail_from_address'        => ['nullable', 'email'],
         ], [
             'google_site_verification.regex' => 'গুগল সার্চ কনসোল ভেরিফিকেশন কোডে শুধু বৈধ টোকেন ক্যারেক্টার (বর্ণ, সংখ্যা, ড্যাশ বা আন্ডারস্কোর) থাকতে পারবে।',
             'google_analytics_id.regex'      => 'গুগল অ্যানালিটিক্স ৪ আইডি অবশ্যই সঠিক ফরম্যাটে (যেমন: G-XXXXXXXXXX) হতে হবে।',
