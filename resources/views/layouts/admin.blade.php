@@ -5,7 +5,7 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="csrf-token" content="{{ csrf_token() }}">
-  <title>@yield('title', 'Admin Dashboard') | মধু Admin</title>
+  <title>@yield('title', 'Admin Dashboard') | Admin</title>
 
   <!-- Favicon -->
   @include('partials.favicon')
@@ -114,7 +114,7 @@
   <!-- /.content-wrapper -->
 
   <footer class="main-footer">
-    <strong>Copyright &copy; {{ date('Y') }} <a href="{{ route('home') }}">মধু — Sundarban Pure Honey</a>.</strong>
+    <strong>Copyright &copy; {{ date('Y') }} - </strong>
     All rights reserved.
     <div class="float-right d-none d-sm-inline-block">
       <b>Version</b> 1.0.0
