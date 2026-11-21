@@ -159,4 +159,60 @@ class OrderController extends Controller
 
         return view('order-success', compact('order', 'settings'));
     }
+
+    /**
+     * Customer Order Tracking Page.
+     */
+    public function track(Request $request)
+    {
+        $settings = Setting::getAllSettings();
+        $order = null;
+        $searched = false;
+        $errorMessage = null;
+
+        $orderNumberInput = trim($request->input('order_number', ''));
+        $phoneInput = trim($request->input('customer_phone', $request->input('phone', '')));
+
+        if ($request->isMethod('post') || ($request->filled('order_number') && ($request->filled('customer_phone') || $request->filled('phone')))) {
+            $searched = true;
+
+            $request->merge([
+                'order_number'   => $orderNumberInput,
+                'customer_phone' => $phoneInput,
+            ]);
+
+            $request->validate([
+                'order_number'   => 'required|string|max:50',
+                'customer_phone' => 'required|string|max:30',
+            ], [
+                'order_number.required'   => 'অনুগ্রহ করে আপনার অর্ডার নম্বর (Order ID) প্রদান করুন।',
+                'customer_phone.required' => 'অনুগ্রহ করে অর্ডার করার সময় ব্যবহৃত মোবাইল নম্বর প্রদান করুন।',
+            ]);
+
+            // Normalize order number (strip '#' and trim)
+            $cleanOrderNumber = strtoupper(trim(str_replace('#', '', $orderNumberInput)));
+
+            // Normalize phone: extract digits and last 10 digits
+            $cleanPhone = preg_replace('/\D/', '', $phoneInput);
+            $last10 = strlen($cleanPhone) >= 10 ? substr($cleanPhone, -10) : $cleanPhone;
+
+            $order = Order::with('items.product')
+                ->where(function ($q) use ($cleanOrderNumber) {
+                    $q->where('order_number', $cleanOrderNumber)
+                      ->orWhere('order_number', 'LIKE', '%' . $cleanOrderNumber . '%');
+                })
+                ->where(function ($q) use ($cleanPhone, $last10) {
+                    $q->where('customer_phone', $cleanPhone)
+                      ->orWhere('customer_phone', 'LIKE', '%' . $last10)
+                      ->orWhere('customer_phone', 'LIKE', '%' . $cleanPhone . '%');
+                })
+                ->first();
+
+            if (!$order) {
+                $errorMessage = 'দুঃখিত! আপনার প্রদত্ত অর্ডার নম্বর বা ফোন নম্বরের সাথে কোনো অর্ডার পাওয়া যায়নি। অনুগ্রহ করে সঠিক তথ্য দিয়ে পুনরায় চেষ্টা করুন।';
+            }
+        }
+
+        return view('order-track', compact('settings', 'order', 'searched', 'errorMessage', 'orderNumberInput', 'phoneInput'));
+    }
 }

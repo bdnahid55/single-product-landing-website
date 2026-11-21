@@ -37,8 +37,7 @@
     <!-- title row -->
     <div class="row">
       <div class="col-12 pb-3 mb-3 border-bottom">
-        <h2 class="page-header">
-          <i class="fas fa-globe text-success"></i> 🍯 খাঁটি সুন্দরবনের মধু
+        <h2 class="page-header"> খাঁটি সুন্দরবনের মধু
           <small class="float-right text-muted" style="font-size: 1rem;">Date: {{ $order->created_at->format('d/m/Y') }}</small>
         </h2>
       </div>

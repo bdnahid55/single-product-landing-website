@@ -357,6 +357,65 @@ class OrderAndAdminTest extends TestCase
         $response->assertSessionHasErrors(['facebook_pixel_id']);
     }
 
+    public function test_customer_can_view_order_tracking_page_and_track_order(): void
+    {
+        // 1. Visit tracking page
+        $pageResponse = $this->get('/track-order');
+        $pageResponse->assertStatus(200);
+        $pageResponse->assertSee('অর্ডার ট্র্যাকিং (Order Tracking)');
+        $pageResponse->assertSee('আপনার অর্ডারের তথ্য খুঁজুন');
+
+        // 2. Track existing order
+        $order = Order::create([
+            'order_number'     => Order::generateOrderNumber(),
+            'customer_name'    => 'কামরুল হাসান',
+            'customer_phone'   => '01712345678',
+            'customer_address' => 'ধানমন্ডি, ঢাকা',
+            'delivery_area'    => 'inside_dhaka',
+            'delivery_charge'  => 80,
+            'subtotal'         => 1050,
+            'total_amount'     => 1130,
+            'payment_method'   => 'cod',
+            'order_status'     => 'pending',
+        ]);
+        OrderItem::create([
+            'order_id'     => $order->id,
+            'product_id'   => $this->product->id,
+            'product_name' => $this->product->name,
+            'weight'       => $this->product->weight,
+            'unit_price'   => $this->product->sale_price,
+            'quantity'     => 1,
+            'subtotal'     => 1050,
+        ]);
+
+        $trackResponse = $this->post('/track-order', [
+            'order_number'   => $order->order_number,
+            'customer_phone' => $order->customer_phone,
+        ]);
+        $trackResponse->assertStatus(200);
+        $trackResponse->assertSee($order->order_number);
+        $trackResponse->assertSee($order->customer_name);
+        $trackResponse->assertSee('অর্ডার গৃহীত');
+
+        // 3. Track with invalid details
+        $invalidResponse = $this->post('/track-order', [
+            'order_number'   => 'ORD-NONEXISTENT',
+            'customer_phone' => '01999999999',
+        ]);
+        $invalidResponse->assertStatus(200);
+        $invalidResponse->assertSee('কোনো অর্ডার পাওয়া যায়নি');
+    }
+
+    public function test_footer_contains_order_track_link_and_excludes_sitemap_and_admin_login(): void
+    {
+        $response = $this->get('/');
+        $response->assertStatus(200);
+        $response->assertSee('অর্ডার ট্র্যাক করুন');
+        $response->assertSee(route('order.track'));
+        $response->assertDontSee('>সাইটম্যাপ<', false);
+        $response->assertDontSee('>অ্যাডমিন লগইন<', false);
+    }
+
     public function test_seo_metadata_open_graph_and_sitemap_are_present(): void
     {
         $response = $this->get('/');

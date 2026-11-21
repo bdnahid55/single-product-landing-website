@@ -77,7 +77,10 @@
           </table>
         </div>
 
-        <div class="d-flex gap-3 justify-content-center">
+        <div class="d-flex flex-wrap gap-2 justify-content-center">
+          <a href="{{ route('order.track', ['order_number' => $order->order_number, 'phone' => $order->customer_phone]) }}" class="btn btn-success rounded-pill px-4 py-2">
+            <i class="bi bi-geo-alt me-1"></i> অর্ডার ট্র্যাক করুন
+          </a>
           <a href="{{ route('home') }}" class="btn btn-outline-success rounded-pill px-4 py-2">
             <i class="bi bi-arrow-left me-1"></i> আরও অর্ডার করুন
           </a>
