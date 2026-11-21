@@ -9,7 +9,7 @@
 [![Payment Gateway](https://img.shields.io/badge/SSLCommerz-Official%20PHP%20Integrated-008080?style=for-the-badge&logo=visa&logoColor=white)](https://sslcommerz.com)
 [![Deployment](https://img.shields.io/badge/Shared%20Hosting-cPanel%20Ready-F1A80A?style=for-the-badge&logo=cpanel&logoColor=white)](https://cpanel.net)
 
-A production-ready, ultra high-converting single and multi-product e-commerce landing page built specifically for honey, organic foods, and direct-to-consumer (D2C) businesses in Bangladesh. Powered by **Laravel 13**, **Bootstrap 5**, and **AdminLTE 3**, featuring **Cash on Delivery (COD)** + **SSLCommerz (bKash, Nagad, Rocket, Cards)** payment gateways, live parcel tracking, multi-layer bot & spam rate-limiting, Spatie Role-Based Access Control (RBAC), Admin 2FA (OTP), on-demand media & database backups, and shared hosting (cPanel) zero-symlink file uploads.
+A production-ready, ultra high-converting single and multi-product e-commerce landing page built specifically for honey, organic foods, and direct-to-consumer (D2C) businesses in Bangladesh. Powered by **Laravel 13**, **Bootstrap 5**, and **AdminLTE 3**, featuring **Cash on Delivery (COD)** + **SSLCommerz (bKash, Nagad, Rocket, Upay, Visa, MasterCard)** payment gateways, live parcel tracking, multi-layer bot & spam rate-limiting, Spatie Role-Based Access Control (RBAC), Admin 2FA (OTP), on-demand media & database backups, print-ready customer invoices, and shared hosting (cPanel) zero-symlink file uploads.
 
 ---
 
@@ -18,13 +18,15 @@ A production-ready, ultra high-converting single and multi-product e-commerce la
 2. [Tech Stack & System Requirements](#-tech-stack--system-requirements)
 3. [Quick Start (Local Development)](#-quick-start-local-development)
 4. [Default Credentials](#-default-credentials)
-5. [cPanel / Shared Hosting Deployment Guide](#-cpanel--shared-hosting-deployment-guide)
-6. [VPS / Ubuntu / Nginx Deployment Guide](#-vps--ubuntu--nginx-deployment-guide)
-7. [Admin Panel & Feature Walkthrough](#-admin-panel--feature-walkthrough)
-8. [Automated Testing](#-automated-testing)
-9. [Project Architecture & File Layout](#-project-architecture--file-layout)
-10. [Security & Production Hardening](#-security--production-hardening)
-11. [License & Support](#-license--support)
+5. [SSLCommerz Payment Gateway Setup](#-sslcommerz-payment-gateway-setup)
+6. [cPanel / Shared Hosting Upload & Deployment Guide](#-cpanel--shared-hosting-upload--deployment-guide)
+7. [VPS / Ubuntu / Nginx Deployment Guide](#-vps--ubuntu--nginx-deployment-guide)
+8. [Admin Panel & Feature Walkthrough](#-admin-panel--feature-walkthrough)
+9. [Print-Friendly Dynamic Invoicing](#-print-friendly-dynamic-invoicing)
+10. [Automated Testing](#-automated-testing)
+11. [Project Architecture & File Layout](#-project-architecture--file-layout)
+12. [Security & Production Hardening](#-security--production-hardening)
+13. [License & Support](#-license--support)
 
 ---
 
@@ -32,19 +34,23 @@ A production-ready, ultra high-converting single and multi-product e-commerce la
 
 ### 🛍️ Customer Frontend (High-Converting Landing Page)
 - **Single & Multi-Product Mode (Funnel Switcher):** Easily switch between a laser-focused Single Product Landing Funnel or an interactive Multi-Product Honey Package Picker from the Admin Panel.
-- **Cash on Delivery (COD) & Online Payment (SSLCommerz):** Seamlessly supports Cash on Delivery as well as instant digital payments via bKash, Nagad, Rocket, Upay, Visa, MasterCard, and DBBL Nexus through SSLCommerz.
-- **Official SSLCommerz PHP Integration:** Built following the official [`sslcommerz/SSLCommerz-PHP`](https://github.com/sslcommerz/SSLCommerz-PHP) standard library with complete server-side order validation (`orderValidate`), IPN webhook, and CSRF token handling.
+- **Dual Payment Methods:**
+  - **Cash on Delivery (COD):** Zero upfront payment; order confirmed instantly.
+  - **Online Payment (SSLCommerz):** Instant checkout via bKash, Nagad, Rocket, Upay, Visa, MasterCard, and DBBL Nexus.
+- **Robust Payment Lifecycle & Error Recovery:**
+  - Automated hosted gateway session initiation matching the official SSLCommerz PHP standard.
+  - Unpaid online orders are **strictly guarded** and never confirmed as completed until payment is validated.
+  - Dedicated **Payment Status & Recovery Page** (`/orders/{order}/payment-status`): If card/bKash payment fails or the customer cancels, they can immediately retry online payment or click **"ক্যাশ অন ডেলিভারিতে (COD) অর্ডার কনফার্ম করুন"** to convert the order to COD.
 - **Dynamic Delivery Charge Calculation:** Instant toggle between "Inside Dhaka" (৳80 default) and "Outside Dhaka" (৳130 default) with live JavaScript total calculation.
 - **Public Order Tracking (`/track-order`):** Customers can track their real-time parcel fulfillment and delivery status using their Order ID (e.g. `ORD-261121-16D285`) and Phone Number.
 - **Stock & Availability Safeguards:** Prevents checkout of out-of-stock or unpublished products; notifies customers if an item is sold out.
-- **Order Success Page:** Clean order confirmation memo with print capability and instant link to tracking.
 - **SEO & Social Sharing Ready:** Open Graph, Twitter Cards, Google Search Console meta tag, dynamic JSON-LD Product & Organization Schema, canonical URLs, and dynamic sitemap (`/sitemap.xml`).
 - **Speed & Cache Busting:** Automatically appends cache-busting version hashes to CSS/JS so design updates reflect immediately across customer browsers.
 
 ### 🛡️ Bot & Spam Protection
 - **Anti-Bot Invisible Honeypot:** Traps automated submission scripts before they hit the database.
-- **Order Rate Limiter (`throttle:orders`):** Strict 5 orders/minute limit per IP with friendly Bengali warning messages to prevent checkout flooding.
-- **Order Tracking Rate Limiter (`throttle:order-tracking`):** 15 lookups/minute limit to prevent database query scraping.
+- **Order Rate Limiter (`throttle:orders`):** Strict 10 orders/minute limit per IP with friendly Bengali warning messages to prevent checkout flooding.
+- **Payment & Tracking Rate Limiter (`throttle:15,1` / `throttle:order-tracking`):** Prevents automated brute-force scraping and payment session flooding.
 - **Double-Click Submit Protection:** Disables submit buttons and shows loading spinners upon submission to prevent duplicate orders.
 
 ### 🔐 Admin Back-Office (AdminLTE 3)
@@ -95,7 +101,7 @@ A production-ready, ultra high-converting single and multi-product e-commerce la
 - **Framework:** Laravel 13.x
 - **Language:** PHP 8.2 or 8.3+
 - **Database:** MySQL 8.0+ / MariaDB 10.4+ (also supports PostgreSQL / SQLite)
-- **Frontend UI:** Bootstrap 5.3, Bootstrap Icons, Hind Siliguri (Bengali Google Font)
+- **Frontend UI:** Bootstrap 5.3, Bootstrap Icons, Hind Siliguri (Bengali Google Font), Inter (English)
 - **Admin UI:** AdminLTE 3, jQuery 3.6, FontAwesome 5
 - **Security & RBAC:** Spatie Laravel-Permission 6.x
 
@@ -195,43 +201,91 @@ Visit your store in your browser:
 
 ---
 
-## 🌐 cPanel / Shared Hosting Deployment Guide
+## 💳 SSLCommerz Payment Gateway Setup
+
+The application features full, production-ready integration with Bangladesh's premier payment aggregator **SSLCommerz**, enabling instant online payments via bKash, Nagad, Rocket, Upay, Visa, MasterCard, and DBBL Nexus.
+
+### 1. Configuration (Admin Panel or `.env`)
+You can manage credentials directly from the browser without modifying code:
+- Go to **Admin $\rightarrow$ Site & SEO Settings $\rightarrow$ Tab 12: SSLCommerz Payment Gateway**:
+  - **Enable SSLCommerz:** Set to `Enabled (হ্যাঁ)`.
+  - **Environment Mode:** Select `Sandbox (টেস্টিং)` for demo testing or `Live / Production (বাস্তব লেনদেন)` for real money.
+  - **Store ID:** Enter your SSLCommerz Store ID (e.g. `bongo6830d3864bcb8`).
+  - **Store Password:** Enter your SSLCommerz Store Password (e.g. `bongo6830d3864bcb8@ssl`).
+  - Click **সেটিংস সংরক্ষণ করুন (Save Settings)**.
+
+You can also specify defaults in your `.env` file:
+```ini
+SSLCOMMERZ_STORE_ID=bongo6830d3864bcb8
+SSLCOMMERZ_STORE_PASSWORD=bongo6830d3864bcb8@ssl
+SSLCOMMERZ_IS_SANDBOX=true
+SSLCOMMERZ_IS_LOCALHOST=true
+```
+
+### 2. How the Payment Flow Operates
+1. **Initiation (`/orders/{order}/pay`):** When a customer submits checkout with "অনলাইন পেমেন্ট (SSLCommerz)", an order is generated with status `unpaid`. The system builds a full, compliant parameter payload (customer details, delivery address, shipping method, and item summary) and connects to SSLCommerz API to generate a secure `GatewayPageURL`.
+2. **Payment Processing:** The customer is redirected to SSLCommerz to enter PIN / OTP for bKash, Nagad, or cards.
+3. **Success Callback (`/sslcommerz/success`):** Upon payment completion, SSLCommerz redirects the customer back. The server verifies the transaction with SSLCommerz's Order Validation Server API (`orderValidate`).
+   - If verified: `$order->payment_status` is updated to `'paid'`, transaction ID and card type are recorded, and the customer is redirected to the order confirmation page.
+   - If unverified/tampered: The order is marked `'failed'` and customer is redirected to the payment status recovery page.
+4. **Failure & Cancellation (`/sslcommerz/fail` & `/sslcommerz/cancel`):**
+   - If payment fails (e.g. insufficient balance) or customer clicks Cancel, they are redirected to `/orders/{order}/payment-status`.
+   - The page offers two clear actions:
+     - 💳 **"পুনরায় অনলাইন পেমেন্ট করুন" (Retry Online Payment):** Re-attempts payment with SSLCommerz.
+     - 📦 **"ক্যাশ অন ডেলিভারিতে (COD) অর্ডার কনফার্ম করুন" (Convert to COD):** Converts the order payment method to COD and confirms the order immediately.
+5. **Instant Payment Notification (IPN Webhook):**
+   - URL: `https://yourdomain.com/sslcommerz/ipn`
+   - SSLCommerz server-to-server notifications are automatically validated and processed asynchronously.
+   - All `/sslcommerz/*` callback routes are pre-configured to bypass CSRF token verification in [bootstrap/app.php](file:///bootstrap/app.php).
+
+---
+
+## 🌐 cPanel / Shared Hosting Upload & Deployment Guide
 
 This application is built with native compatibility for shared hosting environments (cPanel, DirectAdmin, Plesk) without requiring SSH root access or symlink permissions.
 
-### Option A: Standard cPanel Structure (Recommended)
+### Step 1: Prepare the Project Archive
+On your local computer, open terminal or file explorer and create a `.zip` file of the project root:
+- **Include:** `app`, `bootstrap`, `config`, `database`, `public`, `resources`, `routes`, `storage`, `vendor`, `.env.example`, `artisan`, `composer.json`.
+- **Exclude:** `.git`, `node_modules`, `storage/logs/*.log`, `tests`.
 
-1. **Prepare ZIP for Upload:**
-   Compress all project files into a `.zip` archive, excluding the following folders:
-   - `/vendor` (or keep it if you cannot run Composer on the server)
-   - `/node_modules`
-   - `.git`
-   - `storage/logs/*.log`
+*(If your cPanel has Terminal and Composer installed, you can exclude `/vendor` and run `composer install` on the server).*
 
-2. **Upload to cPanel File Manager:**
-   - Log in to your cPanel $\rightarrow$ **File Manager**.
-   - Navigate to your user home directory (one level above `public_html`, e.g. `/home/username/`).
-   - Create a directory named `modhu_core` and extract your project files inside `/home/username/modhu_core/`.
+### Step 2: Upload Files to cPanel
+1. Log in to your cPanel dashboard.
+2. Open **File Manager**.
+3. In your user home directory (one level above `public_html`, e.g. `/home/yourusername/`), create a folder named `modhu_core`.
+4. Upload your `.zip` archive into `/home/yourusername/modhu_core/` and extract it.
 
-3. **Move Public Assets into `public_html`:**
-   - Move all files and folders inside `/home/username/modhu_core/public/` directly into your `/home/username/public_html/`.
-   - Open `/home/username/public_html/index.php` and update the paths to point to `modhu_core`:
-     ```php
-     // Modify lines 12 & 14 to:
-     require __DIR__.'/../modhu_core/vendor/autoload.php';
-     $app = require_once __DIR__.'/../modhu_core/bootstrap/app.php';
-     ```
+### Step 3: Setup Web Root (`public_html`)
+1. In cPanel File Manager, enter `/home/yourusername/modhu_core/public/`.
+2. Select **all files and folders** inside `public` (including `.htaccess`, `index.php`, `assets/`, `admin/`, `uploads/`, `favicon.ico`).
+3. Move them directly into `/home/yourusername/public_html/`.
+4. Open `/home/yourusername/public_html/index.php` in the cPanel Code Editor.
+5. Update lines 12 & 14 to reference your `modhu_core` directory:
+   ```php
+   // Change from:
+   require __DIR__.'/../vendor/autoload.php';
+   $app = require_once __DIR__.'/../bootstrap/app.php';
 
-4. **Create MySQL Database & User:**
-   - In cPanel $\rightarrow$ **MySQL Database Wizard**:
-     - Create database: `username_modhu`
-     - Create user: `username_dbuser` with a strong password
-     - Assign user to database with **ALL PRIVILEGES**.
+   // Change to:
+   require __DIR__.'/../modhu_core/vendor/autoload.php';
+   $app = require_once __DIR__.'/../modhu_core/bootstrap/app.php';
+   ```
+6. Save the file.
 
-5. **Configure Production `.env`:**
-   In `/home/username/modhu_core/.env`, configure:
+### Step 4: Create MySQL Database & User
+1. In cPanel, navigate to **MySQL® Databases** (or **MySQL Database Wizard**).
+2. Create a new database, e.g. `youruser_modhudb`.
+3. Create a new database user, e.g. `youruser_modhuuser` with a strong password.
+4. Add the user to the database and check **ALL PRIVILEGES**.
+
+### Step 5: Configure Production `.env`
+1. In cPanel File Manager, navigate to `/home/yourusername/modhu_core/`.
+2. Copy `.env.example` to `.env` (make sure hidden files are visible in cPanel settings).
+3. Edit `.env` with your production settings:
    ```ini
-   APP_NAME="সুন্দরবনের মধু"
+   APP_NAME="খাঁটি সুন্দরবনের মধু"
    APP_ENV=production
    APP_KEY=base64:YourGeneratedAppKeyHere=
    APP_DEBUG=false
@@ -240,36 +294,38 @@ This application is built with native compatibility for shared hosting environme
    DB_CONNECTION=mysql
    DB_HOST=127.0.0.1
    DB_PORT=3306
-   DB_DATABASE=username_modhu
-   DB_USERNAME=username_dbuser
+   DB_DATABASE=youruser_modhudb
+   DB_USERNAME=youruser_modhuuser
    DB_PASSWORD=YourStrongDatabasePassword
 
    FILESYSTEM_DISK=public
    ```
 
-6. **Set Correct File Permissions:**
-   In cPanel Terminal or File Manager, ensure write permissions:
-   - `/home/username/modhu_core/storage/` $\rightarrow$ `775` (or `755`)
-   - `/home/username/modhu_core/bootstrap/cache/` $\rightarrow$ `775` (or `755`)
-   - `/home/username/public_html/uploads/` $\rightarrow$ `775` (or `755`)
+### Step 6: Import Database Schema & Seed Data
+- **If you have cPanel Terminal access:**
+  ```bash
+  cd /home/yourusername/modhu_core
+  php artisan migrate --seed --force
+  php artisan config:cache
+  php artisan route:cache
+  php artisan view:cache
+  ```
+- **If you do NOT have Terminal access:**
+  1. Export your local database from your local phpMyAdmin into a `.sql` file.
+  2. In cPanel, open **phpMyAdmin**, select `youruser_modhudb`, and click **Import**.
+  3. Upload and execute the `.sql` file.
 
-7. **Migrate and Seed Database:**
-   If you have **cPanel Terminal** access:
-   ```bash
-   cd /home/username/modhu_core
-   composer install --no-dev --optimize-autoloader
-   php artisan migrate --seed --force
-   php artisan config:cache
-   php artisan route:cache
-   php artisan view:cache
-   ```
-   *If you do NOT have Terminal access:* Export your local database schema/data via phpMyAdmin and import it into cPanel phpMyAdmin.
+### Step 7: Set File & Directory Permissions
+Ensure the following directories have write permissions:
+- `/home/yourusername/modhu_core/storage/` $\rightarrow$ `775` (or `755`)
+- `/home/yourusername/modhu_core/bootstrap/cache/` $\rightarrow$ `775` (or `755`)
+- `/home/yourusername/public_html/uploads/` $\rightarrow$ `775` (or `755`)
 
-8. **Setup Background Cron Job (for Order Throttling, OTP Cleanups & Backups):**
-   In cPanel $\rightarrow$ **Cron Jobs** $\rightarrow$ Add New Cron Job (Every Minute `* * * * *`):
-   ```bash
-   /usr/local/bin/php /home/username/modhu_core/artisan schedule:run >> /dev/null 2>&1
-   ```
+### Step 8: Setup Cron Job for Automation
+In cPanel $\rightarrow$ **Cron Jobs** $\rightarrow$ Add New Cron Job (Every Minute `* * * * *`):
+```bash
+/usr/local/bin/php /home/yourusername/modhu_core/artisan schedule:run >> /dev/null 2>&1
+```
 
 ---
 
@@ -313,7 +369,6 @@ server {
     index index.php;
     charset utf-8;
 
-    # Protect hidden files and uploads
     location / {
         try_files $uri $uri/ /index.php?$query_string;
     }
@@ -383,7 +438,7 @@ Navigate to **Admin $\rightarrow$ Settings**:
 - **Delivery Charges:** Update rates for Inside Dhaka (default ৳80) and Outside Dhaka (default ৳130).
 - **SEO & Social:** Meta title, meta description, Google Search Console token, Google Analytics 4 ID, Meta (Facebook) Pixel ID.
 - **Email (SMTP):** Configure SMTP settings directly in the database. Use the built-in **"Send Test Email"** tool to verify server connectivity without having to place test orders.
-- **Payment Gateway (SSLCommerz):** Configure your SSLCommerz Store ID (`bongo6830d3864bcb8`), Store Password, and Environment Mode (Sandbox vs Live) directly from the settings panel.
+- **Payment Gateway (SSLCommerz):** Configure your SSLCommerz Store ID, Store Password, and Environment Mode (Sandbox vs Live) directly from the settings panel.
 
 ### 5. Automated Backups
 Navigate to **Admin $\rightarrow$ Backups**:
@@ -394,9 +449,31 @@ Navigate to **Admin $\rightarrow$ Backups**:
 
 ---
 
+## 📄 Print-Friendly Dynamic Invoicing
+
+The customer invoice template ([invoice.blade.php](file:///resources/views/admin/orders/invoice.blade.php)) is engineered to produce clean, professional printouts on standard **A4 paper**:
+
+### Key Invoicing Highlights
+- **Dynamic Payment Logic:**
+  - **When Paid Online (SSLCommerz):**
+    - Displays a prominent green **PAID ONLINE** stamp.
+    - Prominent courier notice: *"This parcel has already been PAID IN FULL. Do NOT collect any cash from customer upon delivery."*
+    - Total calculation: Subtotal + Delivery = Total, minus Paid Online = **Due / Amount to Collect: ৳0.00**.
+  - **When Cash on Delivery (COD):**
+    - Clear delivery notice: *"Please collect ৳[Total] in cash from customer upon parcel delivery."*
+    - Highlights **Total to Collect (COD): ৳[Total]**.
+- **Print Optimization (`@media print`):**
+  - Configured for standard A4 portrait (`@page { size: A4 portrait; margin: 12mm 15mm; }`).
+  - Automatically hides action buttons (`.no-print`) and outer shadows.
+  - Retains background colors and highlight badges via `-webkit-print-color-adjust: exact`.
+  - Avoids awkward table row breaks with `page-break-inside: avoid`.
+  - Automatically launches the print dialog when visited with `?auto=1`.
+
+---
+
 ## 🧪 Automated Testing
 
-The project includes an automated test suite verifying every component (checkout validation, rate-limiting, bot honeypot, Spatie RBAC permissions, 2FA OTP, backups, order tracking, and stock management).
+The project includes a comprehensive automated test suite verifying every component (checkout validation, rate-limiting, bot honeypot, Spatie RBAC permissions, 2FA OTP, SSLCommerz online payments, backups, order tracking, and stock management).
 
 Run all feature and unit tests with:
 ```bash
@@ -429,12 +506,13 @@ php artisan test
 ├── app/
 │   ├── Http/
 │   │   ├── Controllers/
-│   │   │   ├── HomeController.php               # Landing page & mode rendering
+│   │   │   ├── HomeController.php               # Landing page & funnel switcher
 │   │   │   ├── OrderController.php              # Checkout processing & order tracking
+│   │   │   ├── SSLCommerzPaymentController.php  # SSLCommerz hosted initiation & callbacks
 │   │   │   └── Admin/
 │   │   │       ├── AuthController.php           # Admin login, 2FA OTP & sessions
 │   │   │       ├── DashboardController.php      # Sales & orders analytics
-│   │   │       ├── OrderController.php          # Admin order review & invoice
+│   │   │       ├── OrderController.php          # Admin order review & A4 invoices
 │   │   │       ├── ProductController.php        # Products catalog CRUD & mode toggle
 │   │   │       ├── ReviewController.php         # Customer reviews moderation
 │   │   │       ├── SectionController.php        # Landing page section & color toggles
@@ -443,9 +521,14 @@ php artisan test
 │   │   │       ├── RoleController.php           # Spatie RBAC roles & permissions
 │   │   │       └── BackupController.php         # Database & media backup manager
 │   │   ├── Middleware/
-│   │   │   └── AdminMiddleware.php              # Admin authentication & guard
+│   │   │   └── AdminMiddleware.php              # Admin authentication & role guard
 │   │   └── Requests/
 │   │       └── StoreOrderRequest.php            # Server-side checkout validation
+│   ├── Library/
+│   │   └── SslCommerz/
+│   │       ├── SslCommerzInterface.php          # Payment gateway contract
+│   │       ├── AbstractSslCommerz.php           # cURL transport, API URLs & SSL checks
+│   │       └── SslCommerzNotification.php       # Payload builder & orderValidate logic
 │   ├── Models/
 │   │   ├── Order.php                            # Order model & order number generator
 │   │   ├── OrderItem.php                        # Order line items relationship
@@ -457,7 +540,8 @@ php artisan test
 │       ├── BackupService.php                    # Full ZIP backup creation service
 │       └── MailConfigService.php                # Database-driven SMTP runtime injector
 ├── config/
-│   └── filesystems.php                          # Configured to serve public/uploads directly
+│   ├── filesystems.php                          # Configured to serve public/uploads directly
+│   └── sslcommerz.php                           # SSLCommerz gateway endpoints & credentials
 ├── database/
 │   ├── migrations/                              # Database table blueprints
 │   └── seeders/
@@ -469,15 +553,19 @@ php artisan test
 ├── resources/
 │   └── views/
 │       ├── home.blade.php                       # Single/Multi landing page
-│       ├── order-success.blade.php              # Customer invoice confirmation
+│       ├── order-success.blade.php              # Customer order confirmation memo
+│       ├── order-payment-status.blade.php       # Payment retry / Convert to COD page
 │       ├── order-track.blade.php                # Public parcel tracking
 │       ├── admin/                               # AdminLTE views (Orders, Products, etc.)
+│       │   └── orders/
+│       │       ├── invoice.blade.php            # Print-ready A4 customer invoice
+│       │       └── show.blade.php               # Detailed order view & status update
 │       └── emails/                              # 2FA OTP & notification email templates
 ├── routes/
 │   └── web.php                                  # Frontend & protected admin route definitions
 └── tests/
     └── Feature/
-        └── OrderAndAdminTest.php                # 51 comprehensive automated test cases
+        └── OrderAndAdminTest.php                # 56 comprehensive automated test cases
 ```
 
 ---
@@ -487,10 +575,11 @@ php artisan test
 Before taking your store live to receive real customer orders, verify this checklist:
 
 1. **Environment Setup:** Set `APP_ENV=production` and `APP_DEBUG=false` in `.env`. Leaving debug enabled exposes database credentials in error messages.
-2. **Change Default Credentials:** Change the default admin email (`admin@modhu.com`) and password (`password123`) immediately.
+2. **Change Default Credentials:** Change the default admin email (`admin@gmail.com`) and password (`password`) immediately.
 3. **Configure SMTP Mailer:** In **Admin $\rightarrow$ Settings**, set your SMTP credentials (such as Google Workspace, Zoho Mail, Mailgun, or SendGrid) so that Admin 2FA OTP codes are delivered securely to your inbox.
-4. **Enforce HTTPS:** Ensure all traffic is redirected to `https://` via Nginx/Apache configuration or Cloudflare Flexible/Full SSL.
-5. **Secure Public Uploads Directory:** Ensure your web server does not execute PHP files inside the `public/uploads/` directory:
+4. **SSLCommerz Live Mode:** When ready for actual payments, switch Environment Mode to `Live` in **Admin $\rightarrow$ Settings $\rightarrow$ SSLCommerz** and enter your Live Store ID & Store Password.
+5. **Enforce HTTPS:** Ensure all traffic is redirected to `https://` via Nginx/Apache configuration or Cloudflare Flexible/Full SSL.
+6. **Secure Public Uploads Directory:** Ensure your web server does not execute PHP files inside the `public/uploads/` directory:
    - For Nginx, add:
      ```nginx
      location ~ ^/uploads/.*\.php$ {
