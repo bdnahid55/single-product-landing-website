@@ -1259,4 +1259,33 @@ class OrderAndAdminTest extends TestCase
         ]);
         $validResp->assertSessionHasNoErrors();
     }
+
+    public function test_honeypot_field_blocks_automated_bot_spam(): void
+    {
+        $botResponse = $this->post('/orders', [
+            'customer_name'    => 'Bot Spammer',
+            'customer_phone'   => '01711223344',
+            'customer_address' => 'Bot Address',
+            'delivery_area'    => 'inside_dhaka',
+            'product_id'       => $this->product->id,
+            'quantity'         => 1,
+            'website_hp'       => 'http://spam-link.ru', // Bot traps itself
+        ]);
+
+        // Blocked before reaching order creation
+        $this->assertNull(Order::where('customer_phone', '01711223344')->first());
+    }
+
+    public function test_orders_route_rate_limiting_protects_against_spam(): void
+    {
+        // Rate limiter allows 5 requests per minute
+        for ($i = 0; $i < 5; $i++) {
+            $this->post('/orders', []);
+        }
+
+        // 6th request triggers rate limit
+        $throttledResp = $this->post('/orders', []);
+        $throttledResp->assertSessionHas('error');
+        $this->assertStringContainsString('অতিরিক্ত অর্ডার অনুরোধ', session('error'));
+    }
 }

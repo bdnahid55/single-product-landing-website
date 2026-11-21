@@ -47,6 +47,7 @@ class StoreOrderRequest extends FormRequest
             'selected_products.*' => ['exists:products,id'],
             'quantities'          => ['nullable', 'array'],
             'items'               => ['nullable', 'array'],
+            'website_hp'          => ['nullable', 'prohibited'],
         ];
     }
 
@@ -58,6 +59,7 @@ class StoreOrderRequest extends FormRequest
     public function messages(): array
     {
         return [
+            'website_hp.prohibited'      => 'স্প্যাম অনুরোধ শনাক্ত করা হয়েছে।',
             'customer_name.required'     => 'অনুগ্রহ করে আপনার নাম প্রদান করুন।',
             'customer_name.max'          => 'নামটি ২৫৫ অক্ষরের বেশি হতে পারবে না।',
             'customer_phone.required'    => 'অনুগ্রহ করে আপনার সচল মোবাইল নম্বর প্রদান করুন।',

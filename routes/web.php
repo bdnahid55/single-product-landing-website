@@ -20,9 +20,13 @@ use App\Http\Controllers\Admin\BackupController;
 |--------------------------------------------------------------------------
 */
 Route::get('/', [HomeController::class, 'index'])->name('home');
-Route::post('/orders', [OrderController::class, 'store'])->name('orders.store');
+Route::post('/orders', [OrderController::class, 'store'])
+    ->middleware('throttle:orders')
+    ->name('orders.store');
 Route::get('/orders/{id}/success', [OrderController::class, 'success'])->name('orders.success');
-Route::match(['get', 'post'], '/track-order', [OrderController::class, 'track'])->name('order.track');
+Route::match(['get', 'post'], '/track-order', [OrderController::class, 'track'])
+    ->middleware('throttle:order-tracking')
+    ->name('order.track');
 
 Route::get('/sitemap.xml', function () {
     return response()->view('sitemap')->header('Content-Type', 'application/xml');

@@ -720,6 +720,11 @@
           <form id="checkoutOrderForm" action="{{ route('orders.store') }}" method="POST">
             @csrf
 
+            <!-- Anti-Bot Honeypot Field (Invisible to real users, catches automated spam bots) -->
+            <div style="position: absolute; left: -9999px; opacity: 0; pointer-events: none;" aria-hidden="true">
+              <input type="text" name="website_hp" value="" tabindex="-1" autocomplete="off">
+            </div>
+
             @if ($errors->any())
               <div class="alert alert-danger shadow-sm mb-4" role="alert">
                 <div class="fw-bold mb-1"><i class="bi bi-exclamation-triangle-fill me-2"></i>অর্ডার ফর্মে কিছু ত্রুটি পাওয়া গেছে:</div>
@@ -1153,6 +1158,23 @@
         }
       });
     });
+
+    // Prevent duplicate rapid submissions (double-click lock)
+    const orderFormEl = document.getElementById('checkoutOrderForm');
+    if (orderFormEl) {
+      orderFormEl.addEventListener('submit', function (e) {
+        if (e.defaultPrevented) return;
+        const submitBtn = document.getElementById('btnSubmitOrder');
+        if (submitBtn) {
+          setTimeout(() => {
+            submitBtn.disabled = true;
+            submitBtn.style.opacity = '0.75';
+            submitBtn.style.cursor = 'not-allowed';
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status"></span>অর্ডার প্রসেস হচ্ছে...';
+          }, 10);
+        }
+      });
+    }
   });
 </script>
 @endif

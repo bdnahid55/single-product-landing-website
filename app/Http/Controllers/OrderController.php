@@ -17,6 +17,11 @@ class OrderController extends Controller
      */
     public function store(StoreOrderRequest $request)
     {
+        if ($request->filled('website_hp')) {
+            \Illuminate\Support\Facades\Log::warning('Spam bot blocked by honeypot from IP: ' . $request->ip());
+            return back()->withInput()->with('error', 'স্প্যাম অনুরোধ শনাক্ত করা হয়েছে।');
+        }
+
         $validated = $request->validated();
 
         $orderItemsData = [];
