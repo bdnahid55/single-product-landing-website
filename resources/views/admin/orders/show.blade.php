@@ -99,9 +99,14 @@
   <!-- Right Column: Status & Admin Controls -->
   <div class="col-md-4">
     <div class="card card-outline card-primary shadow-sm">
-      <div class="card-header">
-        <h3 class="card-title"><i class="fas fa-tasks mr-1"></i> Order Status Management</h3>
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h3 class="card-title mb-0"><i class="fas fa-tasks mr-1"></i> Order Status Management</h3>
+        @cannot('update-order-status')
+          <span class="badge badge-secondary ml-auto"><i class="fas fa-lock mr-1"></i> Read Only</span>
+        @endcannot
       </div>
+
+      @can('update-order-status')
       <form action="{{ route('admin.orders.update-status', $order->id) }}" method="POST">
         @csrf
         @method('PATCH')
@@ -135,6 +140,41 @@
           </button>
         </div>
       </form>
+      @else
+      <div class="card-body">
+        <div class="alert alert-light border small text-muted mb-3">
+          <i class="fas fa-lock text-warning mr-1"></i>
+          অর্ডার স্ট্যাটাস বা পেমেন্ট পরিবর্তন করার অনুমতি শুধুমাত্র নির্ধারিত রোলের জন্য সংরক্ষিত।
+        </div>
+
+        <div class="form-group">
+          <label class="text-muted small mb-1 d-block">Order Fulfillment Status</label>
+          @if($order->order_status == 'pending')
+            <span class="badge badge-warning px-2 py-1"><i class="fas fa-clock mr-1"></i> Pending (অপেক্ষমাণ)</span>
+          @elseif($order->order_status == 'processing')
+            <span class="badge badge-primary px-2 py-1"><i class="fas fa-shipping-fast mr-1"></i> Processing / Dispatched</span>
+          @elseif($order->order_status == 'delivered')
+            <span class="badge badge-success px-2 py-1"><i class="fas fa-check-circle mr-1"></i> Delivered (সম্পন্ন)</span>
+          @else
+            <span class="badge badge-danger px-2 py-1"><i class="fas fa-times-circle mr-1"></i> Cancelled (বাতিল)</span>
+          @endif
+        </div>
+
+        <div class="form-group">
+          <label class="text-muted small mb-1 d-block">Payment Status</label>
+          <span class="badge {{ $order->payment_status == 'paid' ? 'badge-success' : 'badge-light border' }} px-2 py-1">
+            {{ strtoupper($order->payment_method) }} ({{ ucfirst($order->payment_status) }})
+          </span>
+        </div>
+
+        <div class="form-group mb-0">
+          <label class="text-muted small mb-1 d-block">Admin / Courier Note</label>
+          <div class="p-2 bg-light rounded text-monospace small border">
+            {{ $order->admin_notes ?: 'কোনো নোট দেওয়া হয়নি (No note available).' }}
+          </div>
+        </div>
+      </div>
+      @endcan
     </div>
 
     <!-- Quick Meta Box -->

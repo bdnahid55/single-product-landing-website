@@ -33,9 +33,14 @@ class RoleController extends Controller
                 'description' => 'অর্ডার ট্র্যাকিং, স্ট্যাটাস পরিবর্তন ও মেমো',
                 'permissions' => [
                     'manage-orders' => [
-                        'label' => 'Manage Orders',
-                        'bn_label' => 'অর্ডার পরিচালনা ও ইনভয়েস',
-                        'desc' => 'সমস্ত অর্ডার দেখা, ডেলিভারি স্ট্যাটাস পরিবর্তন ও প্রিন্ট ইনভয়েস।',
+                        'label' => 'View & Manage Orders',
+                        'bn_label' => 'অর্ডার দেখা ও ইনভয়েস প্রিন্ট',
+                        'desc' => 'সমস্ত অর্ডারের তালিকা, কাস্টমার তথ্য ও ইনভয়েস দেখার ও প্রিন্ট করার অনুমতি।',
+                    ],
+                    'update-order-status' => [
+                        'label' => 'Update Order Status',
+                        'bn_label' => 'অর্ডার স্ট্যাটাস ব্যবস্থাপনা (Status Management)',
+                        'desc' => 'অর্ডারের ডেলিভারি স্ট্যাটাস (Pending/Processing/Delivered/Cancelled), পেমেন্ট স্ট্যাটাস ও কুরিয়ার নোট আপডেট করার অনুমতি।',
                     ],
                 ],
             ],

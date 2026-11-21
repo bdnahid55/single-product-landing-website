@@ -39,6 +39,7 @@ class OrderAndAdminTest extends TestCase
         $permissions = [
             'view-dashboard',
             'manage-orders',
+            'update-order-status',
             'manage-products',
             'manage-reviews',
             'manage-sections',
@@ -58,6 +59,7 @@ class OrderAndAdminTest extends TestCase
         $managerRole->syncPermissions([
             'view-dashboard',
             'manage-orders',
+            'update-order-status',
             'manage-products',
             'manage-reviews',
             'manage-sections',
@@ -1287,5 +1289,63 @@ class OrderAndAdminTest extends TestCase
         $throttledResp = $this->post('/orders', []);
         $throttledResp->assertSessionHas('error');
         $this->assertStringContainsString('অতিরিক্ত অর্ডার অনুরোধ', session('error'));
+    }
+
+    public function test_order_status_update_permission_enforcement(): void
+    {
+        // 1. Create a support admin with only 'manage-orders' permission (NO 'update-order-status')
+        $supportAdmin = User::create([
+            'name'     => 'Support Staff',
+            'email'    => 'support@modhu.com',
+            'password' => Hash::make('password123'),
+            'is_admin' => true,
+        ]);
+        $supportRole = \Spatie\Permission\Models\Role::create(['name' => 'Order Viewer', 'guard_name' => 'web']);
+        $supportRole->syncPermissions(['view-dashboard', 'manage-orders']);
+        $supportAdmin->assignRole('Order Viewer');
+
+        // Create an order
+        $order = Order::create([
+            'order_number'    => 'ORD-PERM-TEST',
+            'customer_name'   => 'টেস্ট কাস্টমার',
+            'customer_phone'  => '01712345678',
+            'customer_address'=> 'মিরপুর, ঢাকা',
+            'delivery_area'   => 'inside_dhaka',
+            'subtotal'        => 1050.00,
+            'delivery_charge' => 80.00,
+            'total_amount'    => 1130.00,
+            'payment_method'  => 'cod',
+            'payment_status'  => 'unpaid',
+            'order_status'    => 'pending',
+        ]);
+
+        // Support admin can view the order list and order details
+        $this->actingAs($supportAdmin)->get('/admin/orders')->assertStatus(200);
+        $showResp = $this->actingAs($supportAdmin)->get("/admin/orders/{$order->id}");
+        $showResp->assertStatus(200);
+        $showResp->assertSee('Read Only');
+        $showResp->assertDontSee('Update Order Status');
+
+        // Support admin attempts to update the order status -> 403 Forbidden
+        $unauthResp = $this->actingAs($supportAdmin)->patch("/admin/orders/{$order->id}/status", [
+            'order_status'   => 'delivered',
+            'payment_status' => 'paid',
+        ]);
+        $unauthResp->assertStatus(403);
+        $this->assertEquals('pending', $order->fresh()->order_status);
+
+        // Super Admin (who has 'update-order-status') can view form and update status successfully
+        $adminShowResp = $this->actingAs($this->admin)->get("/admin/orders/{$order->id}");
+        $adminShowResp->assertStatus(200);
+        $adminShowResp->assertSee('Update Order Status');
+
+        $authResp = $this->actingAs($this->admin)->patch("/admin/orders/{$order->id}/status", [
+            'order_status'   => 'delivered',
+            'payment_status' => 'paid',
+            'admin_notes'    => 'Delivered by courier',
+        ]);
+        $authResp->assertSessionHas('success');
+        $this->assertEquals('delivered', $order->fresh()->order_status);
+        $this->assertEquals('paid', $order->fresh()->payment_status);
     }
 }

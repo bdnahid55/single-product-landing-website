@@ -22,6 +22,7 @@ class DatabaseSeeder extends Seeder
         $permissions = [
             'view-dashboard',
             'manage-orders',
+            'update-order-status',
             'manage-products',
             'manage-reviews',
             'manage-sections',
@@ -41,6 +42,7 @@ class DatabaseSeeder extends Seeder
         $managerRole->syncPermissions([
             'view-dashboard',
             'manage-orders',
+            'update-order-status',
             'manage-products',
             'manage-reviews',
             'manage-sections',

@@ -39,6 +39,10 @@ class OrderController extends Controller
      */
     public function updateStatus(Request $request, Order $order)
     {
+        if (!auth()->user()->can('update-order-status')) {
+            abort(403, 'আপনার এই অর্ডারের স্ট্যাটাস পরিবর্তন করার অনুমতি নেই (Unauthorized).');
+        }
+
         $validated = $request->validate([
             'order_status'   => 'required|in:pending,processing,delivered,cancelled',
             'payment_status' => 'required|in:unpaid,paid',
