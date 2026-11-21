@@ -25,9 +25,13 @@ Route::post('/orders', [OrderController::class, 'store'])
     ->middleware('throttle:orders')
     ->name('orders.store');
 Route::get('/orders/{id}/success', [OrderController::class, 'success'])->name('orders.success');
-Route::get('/orders/{order}/pay', [SSLCommerzPaymentController::class, 'initiate'])->name('orders.pay');
+Route::get('/orders/{order}/pay', [SSLCommerzPaymentController::class, 'initiate'])
+    ->middleware('throttle:15,1')
+    ->name('orders.pay');
 Route::get('/orders/{order}/payment-status', [SSLCommerzPaymentController::class, 'paymentStatus'])->name('orders.payment_status');
-Route::post('/orders/{order}/convert-to-cod', [SSLCommerzPaymentController::class, 'convertToCod'])->name('orders.convert_to_cod');
+Route::post('/orders/{order}/convert-to-cod', [SSLCommerzPaymentController::class, 'convertToCod'])
+    ->middleware('throttle:15,1')
+    ->name('orders.convert_to_cod');
 Route::match(['get', 'post'], '/track-order', [OrderController::class, 'track'])
     ->middleware('throttle:order-tracking')
     ->name('order.track');

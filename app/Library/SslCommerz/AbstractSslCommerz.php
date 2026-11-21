@@ -72,8 +72,15 @@ abstract class AbstractSslCommerz implements SslCommerzInterface
         curl_setopt($handle, CURLOPT_POST, 1);
         curl_setopt($handle, CURLOPT_POSTFIELDS, http_build_query($data));
         curl_setopt($handle, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($handle, CURLOPT_SSL_VERIFYPEER, false); // For local environments / sandbox compatibility
-        curl_setopt($handle, CURLOPT_SSL_VERIFYHOST, false);
+        // Enforce strict SSL verification in live/production mode; allow local sandbox bypass
+        $isLocalSandbox = ($this->sslc_mode === 'sandbox') && (app()->environment('local', 'testing') || config('sslcommerz.connect_from_localhost', false));
+        if ($isLocalSandbox) {
+            curl_setopt($handle, CURLOPT_SSL_VERIFYPEER, false);
+            curl_setopt($handle, CURLOPT_SSL_VERIFYHOST, false);
+        } else {
+            curl_setopt($handle, CURLOPT_SSL_VERIFYPEER, true);
+            curl_setopt($handle, CURLOPT_SSL_VERIFYHOST, 2);
+        }
 
         if (!empty($headers)) {
             curl_setopt($handle, CURLOPT_HTTPHEADER, $headers);

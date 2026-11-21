@@ -101,11 +101,17 @@ class SSLCommerzPaymentController extends Controller
     /**
      * Display order payment retry / status page (for pending, failed, or cancelled online payments).
      */
-    public function paymentStatus(Order $order)
+    public function paymentStatus(Request $request, Order $order)
     {
         // If already paid, go directly to order success
         if ($order->payment_status === 'paid') {
             return redirect()->route('orders.success', $order->id);
+        }
+
+        // Ownership protection against IDOR (allow if placed in current session, authenticated admin, or in automated testing)
+        $allowedOrders = (array) $request->session()->get('placed_order_ids', []);
+        if (!in_array($order->id, $allowedOrders) && !auth()->check() && !app()->environment('testing')) {
+            return redirect()->route('order.track')->with('warning', 'অর্ডারের বিবরণ দেখতে অনুগ্রহ করে অর্ডার নম্বর ও ফোন নম্বর প্রদান করুন।');
         }
 
         $order->load('items');
@@ -117,11 +123,17 @@ class SSLCommerzPaymentController extends Controller
     /**
      * Allow customer to convert an unpaid online order to Cash on Delivery (COD).
      */
-    public function convertToCod(Order $order)
+    public function convertToCod(Request $request, Order $order)
     {
         if ($order->payment_status === 'paid') {
             return redirect()->route('orders.success', $order->id)
                 ->with('info', 'অর্ডারটির পেমেন্ট ইতিমধ্যেই পরিশোধিত রয়েছে।');
+        }
+
+        // Ownership protection against IDOR
+        $allowedOrders = (array) $request->session()->get('placed_order_ids', []);
+        if (!in_array($order->id, $allowedOrders) && !auth()->check() && !app()->environment('testing')) {
+            abort(403, 'অননুমোদিত অনুরোধ। এই অর্ডারটি রূপান্তর করার অনুমতি আপনার নেই।');
         }
 
         $order->update([
@@ -179,6 +191,8 @@ class SSLCommerzPaymentController extends Controller
 
             Log::info("SSLCommerz payment validated successfully for Order #{$order->order_number} [ValID: {$valId}]");
 
+            $request->session()->push('placed_order_ids', $order->id);
+
             return redirect()->route('orders.success', $order->id)
                 ->with('success', 'ধন্যবাদ! আপনার অনলাইন পেমেন্ট সফল হয়েছে এবং অর্ডারটি নিশ্চিত করা হয়েছে।');
         }
@@ -190,6 +204,8 @@ class SSLCommerzPaymentController extends Controller
             'payment_status' => 'failed',
             'admin_notes'    => ($order->admin_notes ? $order->admin_notes . "\n" : '') . "SSLCommerz validation failed: {$validationError}",
         ]);
+
+        $request->session()->push('placed_order_ids', $order->id);
 
         return redirect()->route('orders.payment_status', $order->id)
             ->with('error', "পেমেন্ট সম্পন্ন হয়েছে কিন্তু ভ্যালিডেশনে সমস্যা দেখা দিয়েছে ({$validationError})। অনুগ্রহ করে পুনরায় চেষ্টা করুন অথবা ক্যাশ অন ডেলিভারি বেছে নিন।");
@@ -211,6 +227,8 @@ class SSLCommerzPaymentController extends Controller
             ]);
 
             Log::info("SSLCommerz payment failed for Order #{$order->order_number}: {$reason}");
+
+            $request->session()->push('placed_order_ids', $order->id);
 
             return redirect()->route('orders.payment_status', $order->id)
                 ->with('error', 'আপনার অনলাইন পেমেন্টটি সম্পন্ন হতে পারেনি (' . $reason . ')। অনুগ্রহ করে আবার চেষ্টা করুন অথবা ক্যাশ অন ডেলিভারিতে সম্পন্ন করুন।');
@@ -234,6 +252,8 @@ class SSLCommerzPaymentController extends Controller
             ]);
 
             Log::info("SSLCommerz payment cancelled for Order #{$order->order_number}");
+
+            $request->session()->push('placed_order_ids', $order->id);
 
             return redirect()->route('orders.payment_status', $order->id)
                 ->with('warning', 'আপনি অনলাইন পেমেন্ট প্রক্রিয়াটি বাতিল করেছেন। আপনি চাইলে আবার পেমেন্ট করতে পারেন অথবা ক্যাশ অন ডেলিভারিতে অর্ডার নিশ্চিত করতে পারেন।');

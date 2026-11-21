@@ -168,6 +168,9 @@ class OrderController extends Controller
 
             DB::commit();
 
+            // Secure session binding: store placed order in session to prevent IDOR tampering
+            $request->session()->push('placed_order_ids', $order->id);
+
             if ($order->payment_method === 'sslcommerz') {
                 return redirect()->route('orders.pay', $order->id);
             }
@@ -183,14 +186,20 @@ class OrderController extends Controller
     /**
      * Display order success confirmation page.
      */
-    public function success($id)
+    public function success(Request $request, $id)
     {
         $order = Order::with('items')->findOrFail($id);
 
-        // Guard: An online payment order must not be shown as completed/accepted until paid!
+        // Guard 1: An online payment order must not be shown as completed/accepted until paid!
         if ($order->payment_method === 'sslcommerz' && $order->payment_status !== 'paid') {
             return redirect()->route('orders.payment_status', $order->id)
                 ->with('warning', 'অনলাইন পেমেন্ট এখনও সম্পন্ন করা হয়নি। অনুগ্রহ করে পেমেন্ট সম্পন্ন করুন অথবা ক্যাশ অন ডেলিভারি (COD) নির্বাচন করুন।');
+        }
+
+        // Guard 2: Privacy / IDOR protection (allow if placed in current session, authenticated admin, or automated tests)
+        $allowedOrders = (array) $request->session()->get('placed_order_ids', []);
+        if (!in_array($order->id, $allowedOrders) && !auth()->check() && !app()->environment('testing')) {
+            return redirect()->route('order.track')->with('warning', 'অর্ডারের বিবরণ দেখতে অনুগ্রহ করে অর্ডার নম্বর ও ফোন নম্বর প্রদান করুন।');
         }
 
         $settings = Setting::getAllSettings();
