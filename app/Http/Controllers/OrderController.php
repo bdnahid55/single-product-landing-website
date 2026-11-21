@@ -155,7 +155,7 @@ class OrderController extends Controller
     public function success($id)
     {
         $order = Order::with('items')->findOrFail($id);
-        $settings = Setting::all()->pluck('value', 'key')->toArray();
+        $settings = Setting::getAllSettings();
 
         return view('order-success', compact('order', 'settings'));
     }

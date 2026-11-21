@@ -29,6 +29,19 @@
 
   <!-- jQuery -->
   <script src="{{ asset('admin/plugins/jquery/jquery.min.js') }}"></script>
+  <style>
+    .alert a.seo-asset-link,
+    a.seo-asset-link,
+    .seo-asset-link {
+      color: #000000 !important;
+      text-decoration: underline !important;
+    }
+    .alert a.seo-asset-link:hover,
+    a.seo-asset-link:hover,
+    .seo-asset-link:hover {
+      color: #28a745 !important;
+    }
+  </style>
   @stack('styles')
 </head>
 <body class="hold-transition sidebar-mini layout-fixed">

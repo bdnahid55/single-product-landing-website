@@ -13,16 +13,31 @@ class SettingController extends Controller
      */
     public function index()
     {
-        $settings = Setting::all()->pluck('value', 'key')->toArray();
+        $settings = Setting::getAllSettings();
         return view('admin.settings.index', compact('settings'));
     }
 
     /**
-     * Update settings in storage.
+     * Update settings in storage following modern best practices.
      */
     public function update(Request $request)
     {
-        // Handle Image Uploads
+        // 1. Normalize Tracking & Analytics inputs (extract clean IDs if full script tags were pasted)
+        $normalizedTracking = $this->normalizeTrackingInputs($request);
+        $request->merge($normalizedTracking);
+
+        // 2. Validate tracking fields strictly to prevent syntax errors and stored XSS vulnerabilities
+        $request->validate([
+            'google_site_verification' => ['nullable', 'string', 'max:255', 'regex:/^[a-zA-Z0-9_\-]+$/'],
+            'google_analytics_id'      => ['nullable', 'string', 'max:50', 'regex:/^(G-[A-Za-z0-9]+|UA-[0-9]+-[0-9]+)$/'],
+            'facebook_pixel_id'        => ['nullable', 'string', 'max:30', 'regex:/^[0-9]{5,25}$/'],
+        ], [
+            'google_site_verification.regex' => 'গুগল সার্চ কনসোল ভেরিফিকেশন কোডে শুধু বৈধ টোকেন ক্যারেক্টার (বর্ণ, সংখ্যা, ড্যাশ বা আন্ডারস্কোর) থাকতে পারবে।',
+            'google_analytics_id.regex'      => 'গুগল অ্যানালিটিক্স ৪ আইডি অবশ্যই সঠিক ফরম্যাটে (যেমন: G-XXXXXXXXXX) হতে হবে।',
+            'facebook_pixel_id.regex'        => 'ফেসবুক পিক্সেল আইডি অবশ্যই শুধুমাত্র সংখ্যার (যেমন: 123456789012345) হতে হবে।',
+        ]);
+
+        // 3. Handle Image Uploads
         $fileInputs = [
             'site_favicon_file'        => 'site_favicon',
             'og_image_file'            => 'og_image',
@@ -47,13 +62,73 @@ class SettingController extends Controller
             }
         }
 
-        // Exclude system and file tokens
-        $ignoreFields = array_merge(array_keys($fileInputs), ['_token', '_method']);
+        // 4. Save Webmaster & Analytics Tracking in database with dedicated 'analytics' group
+        $trackingKeys = ['google_site_verification', 'google_analytics_id', 'facebook_pixel_id'];
+        foreach ($trackingKeys as $tKey) {
+            Setting::set($tKey, $normalizedTracking[$tKey] ?? '', 'analytics');
+        }
+
+        // 5. Exclude system tokens, file inputs, and tracking fields from generic update loop
+        $ignoreFields = array_merge(array_keys($fileInputs), $trackingKeys, ['_token', '_method']);
 
         foreach ($request->except($ignoreFields) as $key => $value) {
             Setting::set($key, $value !== null ? trim($value) : '');
         }
 
+        // 6. Invalidate application settings cache
+        Setting::clearCache();
+
         return back()->with('success', 'Settings updated successfully! Blank items will be hidden on the website.');
+    }
+
+    /**
+     * Normalize & extract clean IDs if user pasted full script snippets.
+     */
+    protected function normalizeTrackingInputs(Request $request): array
+    {
+        $gVerification = $request->input('google_site_verification');
+        $gaId = $request->input('google_analytics_id');
+        $pixelId = $request->input('facebook_pixel_id');
+
+        // Extract Google Search Console token
+        if (!empty($gVerification)) {
+            $raw = trim($gVerification);
+            if (preg_match('/content=[\'"]([^\'"]+)[\'"]/i', $raw, $matches)) {
+                $gVerification = $matches[1];
+            }
+            $gVerification = trim(strip_tags($gVerification), " \t\n\r\0\x0B\"'\\");
+        } else {
+            $gVerification = '';
+        }
+
+        // Extract GA4 or UA ID
+        if (!empty($gaId)) {
+            $raw = trim($gaId);
+            if (preg_match('/(G-[A-Za-z0-9]+|UA-[0-9]+-[0-9]+)/i', $raw, $matches)) {
+                $gaId = strtoupper($matches[1]);
+            } else {
+                $gaId = strtoupper(trim(strip_tags($raw)));
+            }
+        } else {
+            $gaId = '';
+        }
+
+        // Extract Facebook Pixel numeric ID
+        if (!empty($pixelId)) {
+            $raw = trim($pixelId);
+            if (preg_match('/(?:init)?[^\d]*(\d{5,25})/i', $raw, $matches)) {
+                $pixelId = $matches[1];
+            } else {
+                $pixelId = $raw;
+            }
+        } else {
+            $pixelId = '';
+        }
+
+        return [
+            'google_site_verification' => $gVerification,
+            'google_analytics_id'      => $gaId,
+            'facebook_pixel_id'        => $pixelId,
+        ];
     }
 }

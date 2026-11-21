@@ -167,29 +167,41 @@
                 <div class="col-md-4">
                   <div class="form-group">
                     <label for="google_site_verification">Google Search Console Verification Code</label>
-                    <input type="text" name="google_site_verification" id="google_site_verification" class="form-control" value="{{ old('google_site_verification', $settings['google_site_verification'] ?? '') }}" placeholder="e.g. AbCdEfGhIjKlMnOpQrStUvWxYz">
+                    <input type="text" name="google_site_verification" id="google_site_verification" class="form-control @error('google_site_verification') is-invalid @enderror" value="{{ old('google_site_verification', $settings['google_site_verification'] ?? '') }}" placeholder="e.g. AbCdEfGhIjKlMnOpQrStUvWxYz">
+                    @error('google_site_verification')
+                      <span class="invalid-feedback font-weight-bold">{{ $message }}</span>
+                    @enderror
+                    <small class="form-text text-muted">HTML Tag-এর <code>content="..."</code> টোকেন দিন (পুরো ট্যাগ পেস্ট করলেও সিস্টেম স্বয়ংক্রিয়ভাবে টোকেন আলাদা করে নেবে)।</small>
                   </div>
                 </div>
                 <div class="col-md-4">
                   <div class="form-group">
                     <label for="google_analytics_id">Google Analytics 4 ID (GA4)</label>
-                    <input type="text" name="google_analytics_id" id="google_analytics_id" class="form-control" value="{{ old('google_analytics_id', $settings['google_analytics_id'] ?? '') }}" placeholder="e.g. G-XXXXXXXXXX">
+                    <input type="text" name="google_analytics_id" id="google_analytics_id" class="form-control @error('google_analytics_id') is-invalid @enderror" value="{{ old('google_analytics_id', $settings['google_analytics_id'] ?? '') }}" placeholder="e.g. G-XXXXXXXXXX">
+                    @error('google_analytics_id')
+                      <span class="invalid-feedback font-weight-bold">{{ $message }}</span>
+                    @enderror
+                    <small class="form-text text-muted">শুধু Measurement ID (যেমন: <code>G-XXXXXXXXXX</code>) দিন।</small>
                   </div>
                 </div>
                 <div class="col-md-4">
                   <div class="form-group">
                     <label for="facebook_pixel_id">Facebook Pixel ID</label>
-                    <input type="text" name="facebook_pixel_id" id="facebook_pixel_id" class="form-control" value="{{ old('facebook_pixel_id', $settings['facebook_pixel_id'] ?? '') }}" placeholder="e.g. 123456789012345">
+                    <input type="text" name="facebook_pixel_id" id="facebook_pixel_id" class="form-control @error('facebook_pixel_id') is-invalid @enderror" value="{{ old('facebook_pixel_id', $settings['facebook_pixel_id'] ?? '') }}" placeholder="e.g. 123456789012345">
+                    @error('facebook_pixel_id')
+                      <span class="invalid-feedback font-weight-bold">{{ $message }}</span>
+                    @enderror
+                    <small class="form-text text-muted">শুধু সংখ্যাসূচক পিক্সেল আইডি (যেমন: <code>123456789012345</code>) দিন।</small>
                   </div>
                 </div>
               </div>
 
-              <div class="alert alert-light border mt-2">
+              <div class="alert alert-light border mt-2" style="color: #000000 !important;">
                 <i class="fas fa-sitemap mr-1 text-success"></i> 
-                <strong>Automated SEO Assets:</strong>
-                <a href="{{ route('sitemap') }}" target="_blank" class="ml-2 font-weight-bold">View XML Sitemap (/sitemap.xml)</a>
-                <span class="mx-2">|</span>
-                <a href="{{ url('/robots.txt') }}" target="_blank" class="font-weight-bold">View robots.txt</a>
+                <strong style="color: #000000 !important;">Automated SEO Assets:</strong>
+                <a href="{{ route('sitemap') }}" target="_blank" class="ml-2 font-weight-bold seo-asset-link" style="color: #000000 !important;">View XML Sitemap (/sitemap.xml)</a>
+                <span class="mx-2" style="color: #000000 !important;">|</span>
+                <a href="{{ url('/robots.txt') }}" target="_blank" class="font-weight-bold seo-asset-link" style="color: #000000 !important;">View robots.txt</a>
               </div>
             </div>
 
@@ -905,3 +917,18 @@
   </div>
 </div>
 @endsection
+
+@push('styles')
+<style>
+  .alert a.seo-asset-link,
+  .seo-asset-link {
+    color: #000000 !important;
+    text-decoration: underline !important;
+  }
+  .alert a.seo-asset-link:hover,
+  .seo-asset-link:hover {
+    color: #28a745 !important;
+    text-decoration: underline !important;
+  }
+</style>
+@endpush

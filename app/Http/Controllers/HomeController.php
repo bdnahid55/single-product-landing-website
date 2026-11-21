@@ -14,7 +14,7 @@ class HomeController extends Controller
      */
     public function index()
     {
-        $settings = Setting::all()->pluck('value', 'key')->toArray();
+        $settings = Setting::getAllSettings();
         $storeMode = $settings['store_mode'] ?? 'multiple';
         $singleProductId = $settings['single_product_id'] ?? null;
 

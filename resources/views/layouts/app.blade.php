@@ -42,12 +42,12 @@
   <meta name="twitter:description" content="@yield('twitter_description', $settings['meta_description'] ?? 'সুন্দরবনের গহীন বন থেকে সংগৃহীত ১০০% খাঁটি প্রাকৃতিক মধু।')">
   <meta name="twitter:image" content="@yield('twitter_image', $ogImage)">
 
-  @if(!empty($settings['google_site_verification']))
+  @if(!empty($settings['google_site_verification']) && preg_match('/^[a-zA-Z0-9_\-]+$/', $settings['google_site_verification']))
     <!-- Google Search Console Verification -->
     <meta name="google-site-verification" content="{{ $settings['google_site_verification'] }}">
   @endif
 
-  @if(!empty($settings['google_analytics_id']))
+  @if(!empty($settings['google_analytics_id']) && preg_match('/^(G-[A-Za-z0-9]+|UA-[0-9]+-[0-9]+)$/', $settings['google_analytics_id']))
     <!-- Google Analytics (GA4) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id={{ $settings['google_analytics_id'] }}"></script>
     <script>
@@ -58,7 +58,7 @@
     </script>
   @endif
 
-  @if(!empty($settings['facebook_pixel_id']))
+  @if(!empty($settings['facebook_pixel_id']) && preg_match('/^[0-9]{5,25}$/', $settings['facebook_pixel_id']))
     <!-- Meta Pixel Code -->
     <script>
       !function(f,b,e,v,n,t,s)

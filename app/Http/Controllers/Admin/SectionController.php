@@ -204,7 +204,7 @@ class SectionController extends Controller
      */
     public function index()
     {
-        $settings = Setting::all()->pluck('value', 'key')->toArray();
+        $settings = Setting::getAllSettings();
         $sections = self::getSectionsRegistry();
 
         return view('admin.sections.index', compact('settings', 'sections'));

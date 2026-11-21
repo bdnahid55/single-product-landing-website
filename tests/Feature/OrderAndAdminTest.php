@@ -322,6 +322,41 @@ class OrderAndAdminTest extends TestCase
         $this->assertEquals('150', Setting::get('delivery_outside_dhaka'));
     }
 
+    public function test_admin_can_save_and_sanitize_webmaster_and_analytics_tracking(): void
+    {
+        $response = $this->actingAs($this->admin)->put('/admin/settings', [
+            'google_site_verification' => '<meta name="google-site-verification" content="VERIF_TOKEN_123" />',
+            'google_analytics_id'      => 'g-12345abcdef',
+            'facebook_pixel_id'        => 'fbq(\'init\', \'987654321012345\');',
+        ]);
+
+        $response->assertSessionHas('success');
+
+        // Check values normalized and stored in database
+        $this->assertEquals('VERIF_TOKEN_123', Setting::get('google_site_verification'));
+        $this->assertEquals('G-12345ABCDEF', Setting::get('google_analytics_id'));
+        $this->assertEquals('987654321012345', Setting::get('facebook_pixel_id'));
+
+        // Check group is 'analytics'
+        $dbRecord = Setting::where('key', 'google_analytics_id')->first();
+        $this->assertEquals('analytics', $dbRecord->group);
+
+        // Check homepage output
+        $homeResponse = $this->get('/');
+        $homeResponse->assertSee('<meta name="google-site-verification" content="VERIF_TOKEN_123">', false);
+        $homeResponse->assertSee('https://www.googletagmanager.com/gtag/js?id=G-12345ABCDEF', false);
+        $homeResponse->assertSee('fbq(\'init\', \'987654321012345\')', false);
+    }
+
+    public function test_invalid_analytics_tracking_is_rejected(): void
+    {
+        $response = $this->actingAs($this->admin)->put('/admin/settings', [
+            'facebook_pixel_id' => 'not-a-number-pixel-id',
+        ]);
+
+        $response->assertSessionHasErrors(['facebook_pixel_id']);
+    }
+
     public function test_seo_metadata_open_graph_and_sitemap_are_present(): void
     {
         $response = $this->get('/');
