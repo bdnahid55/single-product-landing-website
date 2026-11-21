@@ -223,6 +223,10 @@ class DatabaseSeeder extends Seeder
             ['key' => 'section_order_form_show', 'value' => '1', 'group' => 'section_control'],
             ['key' => 'section_footer_show', 'value' => '1', 'group' => 'section_control'],
             ['key' => 'section_whatsapp_widget_show', 'value' => '1', 'group' => 'section_control'],
+
+            // Selling Mode: 'multiple' (all packages + selector) vs 'single' (focused single product)
+            ['key' => 'store_mode', 'value' => 'multiple', 'group' => 'store_mode'],
+            ['key' => 'single_product_id', 'value' => '1', 'group' => 'store_mode'],
         ];
 
         foreach ($settings as $item) {

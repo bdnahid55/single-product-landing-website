@@ -1122,6 +1122,127 @@ textarea.order-form-control {
   box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.15);
 }
 
+/* Multi-Product Package Selector in Order Form */
+.order-package-selector-wrapper {
+  margin-bottom: 20px;
+}
+
+.package-select-card {
+  border: 2px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 10px 12px;
+  cursor: pointer;
+  background-color: #ffffff;
+  transition: all 0.2s ease-in-out;
+  position: relative;
+  user-select: none;
+}
+
+.package-select-card:hover {
+  border-color: #86efac;
+  background-color: #f0fdf4;
+}
+
+.package-select-card.active {
+  border-color: var(--primary-green, #16a34a);
+  background-color: #f0fdf4;
+  box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.15);
+}
+
+.package-select-card .package-name {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #111827;
+  line-height: 1.25;
+}
+
+.package-select-card .package-price {
+  font-size: 0.95rem;
+  font-weight: 800;
+}
+
+.package-select-card .package-check-icon {
+  color: #d1d5db;
+  font-size: 1.2rem;
+  transition: color 0.2s;
+}
+
+.package-select-card.active .package-check-icon {
+  color: var(--primary-green, #16a34a);
+}
+
+.package-select-card .package-thumb {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+  background: #ffffff;
+  border-radius: 6px;
+  padding: 2px;
+  border: 1px solid #e5e7eb;
+}
+
+/* Multi-Product Multi-Item Cart Selection (Option B) */
+.multi-cart-wrapper {
+  margin-bottom: 20px;
+}
+
+.multi-products-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.multi-product-card {
+  border: 1.5px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 12px 16px;
+  background-color: #ffffff;
+  transition: all 0.2s ease-in-out;
+}
+
+.multi-product-card:hover {
+  border-color: #86efac;
+}
+
+.multi-product-card.selected {
+  border-color: var(--primary-green, #16a34a);
+  background-color: #f0fdf4;
+  box-shadow: 0 2px 8px rgba(22, 163, 74, 0.12);
+}
+
+.multi-product-card:not(.selected) {
+  opacity: 0.65;
+  background-color: #f9fafb;
+}
+
+.multi-product-card .multi-prod-img {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+  background: #ffffff;
+  border-radius: 8px;
+  padding: 3px;
+  border: 1px solid #e5e7eb;
+}
+
+.multi-product-card .multi-prod-name {
+  font-size: 0.98rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+.multi-product-card .multi-prod-checkbox {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  accent-color: var(--primary-green, #16a34a);
+}
+
+.multi-product-card .multi-line-subtotal {
+  font-size: 1.05rem;
+  color: var(--primary-green, #16a34a);
+}
+
 /* Payment Method */
 .payment-section-box {
   margin: 20px 0;

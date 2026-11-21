@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Product;
+use App\Models\Setting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
@@ -15,7 +16,34 @@ class ProductController extends Controller
     public function index()
     {
         $products = Product::latest()->get();
-        return view('admin.products.index', compact('products'));
+        $allProducts = Product::orderBy('name')->get();
+        $storeMode = Setting::get('store_mode', 'multiple');
+        $singleProductId = Setting::get('single_product_id');
+
+        return view('admin.products.index', compact('products', 'allProducts', 'storeMode', 'singleProductId'));
+    }
+
+    /**
+     * Update website sales mode (single product vs multiple products).
+     */
+    public function updateMode(Request $request)
+    {
+        $validated = $request->validate([
+            'store_mode'        => 'required|in:single,multiple',
+            'single_product_id' => 'nullable|exists:products,id',
+        ]);
+
+        Setting::set('store_mode', $validated['store_mode'], 'store_mode');
+
+        if (!empty($validated['single_product_id'])) {
+            Setting::set('single_product_id', $validated['single_product_id'], 'store_mode');
+        }
+
+        $modeLabel = $validated['store_mode'] === 'single'
+            ? 'Single Product Funnel (একক পণ্য মোড)'
+            : 'Multi-Product Store (একাধিক পণ্য / প্যাকেজ মোড)';
+
+        return back()->with('success', "ওয়েবসাইট বিক্রয় মোড সফলভাবে পরিবর্তন করা হয়েছে: {$modeLabel}!");
     }
 
     /**

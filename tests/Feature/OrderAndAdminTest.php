@@ -256,6 +256,53 @@ class OrderAndAdminTest extends TestCase
         $recheckHome->assertSee($this->product->name);
     }
 
+    public function test_admin_can_switch_selling_mode_between_single_and_multiple_products(): void
+    {
+        // Create second product
+        $prod2 = Product::create([
+            'name'          => 'সুন্দরবনের খলিসা মধু (৫০০ গ্রাম)',
+            'slug'          => 'khalisa-500g',
+            'weight'        => '৫০০ গ্রাম',
+            'regular_price' => 600.00,
+            'sale_price'    => 500.00,
+            'stock'         => 30,
+            'is_active'     => true,
+            'is_featured'   => false,
+        ]);
+
+        // Default: Multi-Product Mode -> shows package cards and grid
+        $multiHome = $this->get('/');
+        $multiHome->assertStatus(200);
+        $multiHome->assertSee('আপনার পছন্দের মধু প্যাকেজ নির্বাচন করুন');
+        $multiHome->assertSee('৫০০ গ্রাম');
+
+        // Switch to Single Product Mode
+        $modeResponse = $this->actingAs($this->admin)->put('/admin/products-mode', [
+            'store_mode'        => 'single',
+            'single_product_id' => $this->product->id,
+        ]);
+
+        $modeResponse->assertRedirect();
+        $this->assertEquals('single', Setting::get('store_mode'));
+
+        // In Single Product Mode: Only single product is loaded, packages grid is hidden
+        $singleHome = $this->get('/');
+        $singleHome->assertStatus(200);
+        $singleHome->assertSee($this->product->name);
+        // The multiple packages selector should NOT be displayed
+        $singleHome->assertDontSee('আপনার পছন্দের মধু প্যাকেজ নির্বাচন করুন');
+
+        // Switch back to Multi-Product Mode
+        $backResponse = $this->actingAs($this->admin)->put('/admin/products-mode', [
+            'store_mode' => 'multiple',
+        ]);
+        $backResponse->assertRedirect();
+        $this->assertEquals('multiple', Setting::get('store_mode'));
+
+        $recheckMulti = $this->get('/');
+        $recheckMulti->assertSee('আপনার পছন্দের মধু প্যাকেজ নির্বাচন করুন');
+    }
+
     public function test_admin_can_update_settings(): void
     {
         $response = $this->actingAs($this->admin)->put('/admin/settings', [
@@ -349,5 +396,89 @@ class OrderAndAdminTest extends TestCase
         Setting::set('section_gallery_show', '1');
         $recheckHome = $this->get('/');
         $recheckHome->assertSee('id="gallery"', false);
+    }
+
+    public function test_customer_can_order_multiple_distinct_products_simultaneously(): void
+    {
+        $prod2 = Product::create([
+            'name'          => 'সুন্দরবনের খলিসা মধু (৫০০ গ্রাম)',
+            'slug'          => 'khalisa-500g-multi',
+            'weight'        => '৫০০ গ্রাম',
+            'regular_price' => 650.00,
+            'sale_price'    => 550.00,
+            'stock'         => 20,
+            'is_active'     => true,
+            'is_featured'   => false,
+        ]);
+
+        $initialStock1 = $this->product->stock; // 50
+        $initialStock2 = $prod2->stock;         // 20
+
+        $postData = [
+            'customer_name'     => 'তানভীর আহমেদ',
+            'customer_phone'    => '01911223344',
+            'customer_address'  => 'রোড ৪, সেক্টর ১০, উত্তরা, ঢাকা',
+            'delivery_area'     => 'outside_dhaka', // 130 tk
+            'customer_notes'    => 'একত্রে পার্সেল করবেন',
+            'selected_products' => [$this->product->id, $prod2->id],
+            'quantities'        => [
+                $this->product->id => 2, // 1050 * 2 = 2100
+                $prod2->id         => 3, // 550 * 3 = 1650
+            ],
+        ];
+
+        $response = $this->post('/orders', $postData);
+
+        $order = Order::where('customer_phone', '01911223344')->first();
+        $this->assertNotNull($order);
+        $this->assertEquals(2100.00 + 1650.00, $order->subtotal); // 3750.00
+        $this->assertEquals(130.00, $order->delivery_charge);
+        $this->assertEquals(3880.00, $order->total_amount);
+
+        // Assert 2 items in order_items
+        $this->assertCount(2, $order->items);
+
+        $item1 = $order->items->firstWhere('product_id', $this->product->id);
+        $this->assertNotNull($item1);
+        $this->assertEquals(2, $item1->quantity);
+        $this->assertEquals(1050.00, $item1->unit_price);
+        $this->assertEquals(2100.00, $item1->subtotal);
+
+        $item2 = $order->items->firstWhere('product_id', $prod2->id);
+        $this->assertNotNull($item2);
+        $this->assertEquals(3, $item2->quantity);
+        $this->assertEquals(550.00, $item2->unit_price);
+        $this->assertEquals(1650.00, $item2->subtotal);
+
+        // Assert both stocks decremented
+        $this->assertEquals($initialStock1 - 2, $this->product->fresh()->stock);
+        $this->assertEquals($initialStock2 - 3, $prod2->fresh()->stock);
+
+        // Redirects to success page
+        $response->assertRedirect(route('orders.success', $order->id));
+
+        // Follow redirect and assert success page shows all ordered products
+        $successResponse = $this->get(route('orders.success', $order->id));
+        $successResponse->assertStatus(200);
+        $successResponse->assertSee($this->product->name);
+        $successResponse->assertSee($prod2->name);
+        $successResponse->assertSee('3,880.00');
+    }
+
+    public function test_multi_order_submission_rejects_empty_selection(): void
+    {
+        $response = $this->from('/')->post('/orders', [
+            'customer_name'     => 'শূন্য পণ্য টেস্ট',
+            'customer_phone'    => '01700000000',
+            'customer_address'  => 'টেস্ট ঠিকানা',
+            'delivery_area'     => 'inside_dhaka',
+            'selected_products' => [],
+        ]);
+
+        $response->assertRedirect('/');
+        $response->assertSessionHas('error');
+        $this->assertDatabaseMissing('orders', [
+            'customer_phone' => '01700000000',
+        ]);
     }
 }

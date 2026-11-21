@@ -17,22 +17,92 @@ class OrderController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'customer_name'    => 'required|string|max:255',
-            'customer_phone'   => 'required|string|max:20',
-            'customer_address' => 'required|string|max:1000',
-            'product_id'       => 'required|exists:products,id',
-            'quantity'         => 'required|integer|min:1|max:50',
-            'delivery_area'    => 'required|in:inside_dhaka,outside_dhaka',
-            'customer_notes'   => 'nullable|string|max:1000',
+            'customer_name'       => 'required|string|max:255',
+            'customer_phone'      => 'required|string|max:20',
+            'customer_address'    => 'required|string|max:1000',
+            'delivery_area'       => 'required|in:inside_dhaka,outside_dhaka',
+            'customer_notes'      => 'nullable|string|max:1000',
+            'product_id'          => 'nullable|exists:products,id',
+            'quantity'            => 'nullable|integer|min:1|max:50',
+            'selected_products'   => 'nullable|array',
+            'selected_products.*' => 'exists:products,id',
+            'quantities'          => 'nullable|array',
+            'items'               => 'nullable|array',
         ]);
 
-        $product = Product::findOrFail($validated['product_id']);
+        $orderItemsData = [];
+        $subtotal = 0;
+
+        // Case 1: Multi-Product Mode via selected_products[] and quantities[]
+        if ($request->has('selected_products') && is_array($request->input('selected_products'))) {
+            $selectedIds = $request->input('selected_products');
+            $quantities = $request->input('quantities', []);
+
+            foreach ($selectedIds as $pId) {
+                $qty = isset($quantities[$pId]) ? max(1, min(50, intval($quantities[$pId]))) : 1;
+                $product = Product::find($pId);
+                if ($product && $product->is_active) {
+                    $itemSubtotal = $product->sale_price * $qty;
+                    $subtotal += $itemSubtotal;
+                    $orderItemsData[] = [
+                        'product'      => $product,
+                        'product_id'   => $product->id,
+                        'product_name' => $product->name,
+                        'weight'       => $product->weight,
+                        'unit_price'   => $product->sale_price,
+                        'quantity'     => $qty,
+                        'subtotal'     => $itemSubtotal,
+                    ];
+                }
+            }
+        }
+        // Case 2: Multi-Product Mode via items[] array
+        elseif ($request->has('items') && is_array($request->input('items'))) {
+            foreach ($request->input('items') as $item) {
+                if (!empty($item['product_id'])) {
+                    $qty = isset($item['quantity']) ? max(1, min(50, intval($item['quantity']))) : 1;
+                    $product = Product::find($item['product_id']);
+                    if ($product && $product->is_active) {
+                        $itemSubtotal = $product->sale_price * $qty;
+                        $subtotal += $itemSubtotal;
+                        $orderItemsData[] = [
+                            'product'      => $product,
+                            'product_id'   => $product->id,
+                            'product_name' => $product->name,
+                            'weight'       => $product->weight,
+                            'unit_price'   => $product->sale_price,
+                            'quantity'     => $qty,
+                            'subtotal'     => $itemSubtotal,
+                        ];
+                    }
+                }
+            }
+        }
+        // Case 3: Single Product Mode (product_id and quantity)
+        elseif (!empty($validated['product_id'])) {
+            $qty = !empty($validated['quantity']) ? intval($validated['quantity']) : 1;
+            $product = Product::findOrFail($validated['product_id']);
+            $itemSubtotal = $product->sale_price * $qty;
+            $subtotal += $itemSubtotal;
+            $orderItemsData[] = [
+                'product'      => $product,
+                'product_id'   => $product->id,
+                'product_name' => $product->name,
+                'weight'       => $product->weight,
+                'unit_price'   => $product->sale_price,
+                'quantity'     => $qty,
+                'subtotal'     => $itemSubtotal,
+            ];
+        }
+
+        if (empty($orderItemsData)) {
+            return back()->withInput()->with('error', 'অনুগ্রহ করে অন্তত একটি পণ্য নির্বাচন করুন।');
+        }
 
         $deliveryCharge = $validated['delivery_area'] === 'inside_dhaka'
             ? floatval(Setting::get('delivery_inside_dhaka', 80))
             : floatval(Setting::get('delivery_outside_dhaka', 130));
 
-        $subtotal = $product->sale_price * $validated['quantity'];
         $totalAmount = $subtotal + $deliveryCharge;
 
         DB::beginTransaction();
@@ -52,19 +122,21 @@ class OrderController extends Controller
                 'customer_notes'  => $validated['customer_notes'] ?? null,
             ]);
 
-            OrderItem::create([
-                'order_id'     => $order->id,
-                'product_id'   => $product->id,
-                'product_name' => $product->name,
-                'weight'       => $product->weight,
-                'unit_price'   => $product->sale_price,
-                'quantity'     => $validated['quantity'],
-                'subtotal'     => $subtotal,
-            ]);
+            foreach ($orderItemsData as $item) {
+                OrderItem::create([
+                    'order_id'     => $order->id,
+                    'product_id'   => $item['product_id'],
+                    'product_name' => $item['product_name'],
+                    'weight'       => $item['weight'],
+                    'unit_price'   => $item['unit_price'],
+                    'quantity'     => $item['quantity'],
+                    'subtotal'     => $item['subtotal'],
+                ]);
 
-            // Adjust stock safely
-            if ($product->stock >= $validated['quantity']) {
-                $product->decrement('stock', $validated['quantity']);
+                // Adjust stock safely
+                if ($item['product']->stock >= $item['quantity']) {
+                    $item['product']->decrement('stock', $item['quantity']);
+                }
             }
 
             DB::commit();

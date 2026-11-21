@@ -8,11 +8,74 @@
 @endsection
 
 @section('content')
+<!-- Website Selling Mode Card (Single Product vs Multiple Products) -->
+<div class="row mb-3">
+  <div class="col-12">
+    <div class="card card-outline card-success shadow-sm">
+      <div class="card-header bg-white py-3">
+        <div class="d-flex flex-wrap justify-content-between align-items-center">
+          <h3 class="card-title font-weight-bold text-dark mb-0">
+            <i class="fas fa-store text-success mr-2"></i> ওয়েবসাইট বিক্রয় মোড (Website Selling Mode)
+          </h3>
+          <span class="badge {{ $storeMode === 'single' ? 'badge-primary' : 'badge-success' }} px-3 py-2 font-weight-bold">
+            {{ $storeMode === 'single' ? '🎯 Single Product Mode (একক পণ্য মোড সক্রিয়)' : '🛒 Multi-Product Mode (একাধিক পণ্য / প্যাকেজ মোড সক্রিয়)' }}
+          </span>
+        </div>
+      </div>
+      <div class="card-body bg-light">
+        <form action="{{ route('admin.products.update-mode') }}" method="POST">
+          @csrf
+          @method('PUT')
+          <div class="row align-items-center">
+            <div class="col-lg-5 col-md-6 mb-3 mb-lg-0">
+              <label class="font-weight-bold text-dark d-block mb-2">বিক্রয় মোড নির্বাচন করুন:</label>
+              <div class="custom-control custom-radio custom-control-inline mb-2">
+                <input type="radio" id="mode_multiple" name="store_mode" value="multiple" class="custom-control-input" {{ $storeMode === 'multiple' ? 'checked' : '' }}>
+                <label class="custom-control-label font-weight-bold" for="mode_multiple">
+                  🛒 Multi-Product Mode (একাধিক পণ্য / প্যাকেজ গ্রিড)
+                </label>
+              </div>
+              <div class="custom-control custom-radio custom-control-inline">
+                <input type="radio" id="mode_single" name="store_mode" value="single" class="custom-control-input" {{ $storeMode === 'single' ? 'checked' : '' }}>
+                <label class="custom-control-label font-weight-bold" for="mode_single">
+                  🎯 Single Product Mode (একটিমাত্র পণ্য ফোকাস)
+                </label>
+              </div>
+              <small class="text-muted d-block mt-1">
+                <i class="fas fa-info-circle mr-1"></i> <strong>Single Product:</strong> শুধুমাত্র নির্বাচিত পণ্যটি ফোকাস থাকবে, অন্য পণ্যের গ্রিড লুকানো থাকবে।<br>
+                <i class="fas fa-info-circle mr-1"></i> <strong>Multi-Product:</strong> সকল প্যাকেজের তালিকা থাকবে এবং চেকআউটেও প্যাকেজ সুইচ করা যাবে।
+              </small>
+            </div>
+
+            <div class="col-lg-4 col-md-6 mb-3 mb-lg-0" id="singleProductSelectCol" style="{{ $storeMode === 'single' ? '' : 'display: none;' }}">
+              <label class="font-weight-bold text-dark d-block mb-2">একক পণ্য হিসেবে কোনটি বিক্রি করবেন?</label>
+              <select name="single_product_id" class="form-control font-weight-bold">
+                @foreach($allProducts as $p)
+                  <option value="{{ $p->id }}" {{ $singleProductId == $p->id ? 'selected' : '' }}>
+                    {{ $p->name }} (৳{{ number_format($p->sale_price, 0) }}) {{ $p->is_active ? '— [Active]' : '— [Inactive]' }}
+                  </option>
+                @endforeach
+              </select>
+              <small class="text-muted">হোমপেজের হিরো ও অর্ডার ফর্ম সরাসরি এই পণ্যটি নিয়েই লোড হবে।</small>
+            </div>
+
+            <div class="col-lg-3 col-md-12 text-lg-right">
+              <button type="submit" class="btn btn-success font-weight-bold px-4 shadow-sm">
+                <i class="fas fa-save mr-1"></i> মোড সংরক্ষণ করুন
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="row">
   <div class="col-12">
     <div class="card card-outline card-success shadow-sm">
       <div class="card-header">
-        <h3 class="card-title">All Honey Products</h3>
+        <h3 class="card-title font-weight-bold text-dark">All Honey Products (পণ্য তালিকা)</h3>
         <div class="card-tools">
           <a href="{{ route('admin.products.create') }}" class="btn btn-sm btn-success">
             <i class="fas fa-plus mr-1"></i> Add New Product
@@ -106,6 +169,15 @@
       "responsive": true,
       "autoWidth": false,
       "pageLength": 10
+    });
+
+    // Toggle Single Product Selector Dropdown
+    $('input[name="store_mode"]').on('change', function () {
+      if ($(this).val() === 'single') {
+        $('#singleProductSelectCol').slideDown();
+      } else {
+        $('#singleProductSelectCol').slideUp();
+      }
     });
   });
 </script>

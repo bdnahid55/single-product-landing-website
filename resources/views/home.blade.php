@@ -376,8 +376,9 @@
         </article>
         @endif
 
-        <!-- All Available Honey Packages Grid -->
-        <div class="row g-4">
+        <!-- All Available Honey Packages Grid (Shown in Multi-Product Mode) -->
+        @if(($storeMode ?? 'multiple') !== 'single' && $products->count() > 1)
+        <div class="row g-4 mt-2">
           @foreach($products as $product)
             <div class="col-lg-4 col-md-6">
               <article class="card h-100 border-0 shadow-sm rounded-4 p-3 text-center position-relative" style="background: #ffffff; border: 1px solid #f0fdf4 !important;">
@@ -419,6 +420,7 @@
             </div>
           @endforeach
         </div>
+        @endif
 
       </div>
     </section>
@@ -614,45 +616,105 @@
       <div class="container">
         <div class="order-form-card">
           
-          <!-- Header 1: Selected Products -->
-          <div class="form-header-bar">
-            নির্বাচিত পণ্যসমূহ
-          </div>
-
-          <!-- Selected Product Row in Cart -->
-          <div id="selectedProductBox" class="selected-product-box">
-            <div class="selected-prod-left">
-              <img id="cartProductImg" src="{{ $defaultProd->image_url }}" alt="{{ $defaultProd->name }}" class="selected-prod-img" width="60" height="60">
-              <div>
-                <div id="cartProductName" class="selected-prod-name">{{ $defaultProd->name }}</div>
-                <div id="cartProductUnitPrice" class="selected-prod-unit-price">৳{{ number_format($defaultProd->sale_price, 2) }}</div>
-              </div>
-            </div>
-
-            <div class="selected-prod-qty-col">
-              <div class="qty-label">পরিমাণ</div>
-              <div class="qty-control-box">
-                <button type="button" id="btnQtyMinus" class="qty-btn" aria-label="Decrease quantity">−</button>
-                <span id="cartProductQty" class="qty-number">1</span>
-                <button type="button" id="btnQtyPlus" class="qty-btn" aria-label="Increase quantity">+</button>
-              </div>
-            </div>
-
-            <div class="selected-prod-total-col">
-              <div>
-                <div class="subtotal-label">সর্বমোট</div>
-                <div id="cartProductSubtotal" class="subtotal-val">৳{{ number_format($defaultProd->sale_price, 2) }}</div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Real Order Submission Form -->
+          <!-- Real Order Submission Form wrapping products and fields -->
           <form id="checkoutOrderForm" action="{{ route('orders.store') }}" method="POST">
             @csrf
 
-            <!-- Hidden Form Fields for Product & Calculation -->
-            <input type="hidden" name="product_id" id="formProductId" value="{{ $defaultProd->id }}">
-            <input type="hidden" name="quantity" id="formQuantity" value="1">
+            <!-- Header 1: Selected Products -->
+            <div class="form-header-bar">
+              নির্বাচিত পণ্যসমূহ
+            </div>
+
+            @if(($storeMode ?? 'multiple') !== 'single' && $products->count() > 1)
+              <!-- Multi-Product Mode: Multi-Item Cart Selection (Option B) -->
+              <div class="multi-cart-wrapper">
+                <p class="text-muted small mb-3">
+                  <i class="bi bi-info-circle text-success me-1"></i> আপনার পছন্দের মধু প্যাকেজ নির্বাচন করুন (এক বা একাধিক নির্বাচন করতে পারেন):
+                </p>
+
+                <div class="multi-products-list" id="multiProductsList">
+                  @foreach($products as $prod)
+                    <div class="multi-product-card d-flex align-items-center justify-content-between flex-wrap gap-2 {{ $loop->first ? 'selected' : '' }}" id="multiProdCard{{ $prod->id }}">
+                      <div class="d-flex align-items-center gap-3">
+                        <input type="checkbox"
+                               name="selected_products[]" 
+                               value="{{ $prod->id }}" 
+                               id="chkProd{{ $prod->id }}" 
+                               class="multi-prod-checkbox" 
+                               data-id="{{ $prod->id }}"
+                               data-name="{{ $prod->name }}"
+                               data-price="{{ $prod->sale_price }}"
+                               {{ $loop->first ? 'checked' : '' }}
+                               onchange="window.onMultiCheckChange({{ $prod->id }})">
+                        <label for="chkProd{{ $prod->id }}" class="d-flex align-items-center gap-2 mb-0" style="cursor: pointer;">
+                          <img src="{{ $prod->image_url }}" alt="{{ $prod->name }}" class="multi-prod-img">
+                          <div>
+                            <div class="multi-prod-name">{{ $prod->name }}</div>
+                            <div class="text-muted small">
+                              @if($prod->weight)
+                                <span class="badge bg-light text-secondary me-1">{{ $prod->weight }}</span>
+                              @endif
+                              <span class="text-success fw-bold">৳{{ number_format($prod->sale_price, 0) }}</span> / টি
+                            </div>
+                          </div>
+                        </label>
+                      </div>
+
+                      <div class="d-flex align-items-center gap-3 ms-auto">
+                        <!-- Quantity Controls -->
+                        <div class="qty-control-box">
+                          <button type="button" class="qty-btn" onclick="window.adjustMultiQty({{ $prod->id }}, -1)" aria-label="Decrease quantity">−</button>
+                          <span id="qtyDisplay{{ $prod->id }}" class="qty-number">1</span>
+                          <button type="button" class="qty-btn" onclick="window.adjustMultiQty({{ $prod->id }}, 1)" aria-label="Increase quantity">+</button>
+                          <input type="hidden" name="quantities[{{ $prod->id }}]" id="qtyInput{{ $prod->id }}" value="1">
+                        </div>
+
+                        <!-- Subtotal for this line -->
+                        <div class="text-end" style="min-width: 90px;">
+                          <div class="small text-muted" style="font-size: 0.75rem;">সাবটোটাল</div>
+                          <div id="lineTotal{{ $prod->id }}" class="fw-bold multi-line-subtotal">
+                            ৳{{ number_format($prod->sale_price, 2) }}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  @endforeach
+                </div>
+              </div>
+            @else
+              <!-- Single Product Mode: Single Item Cart -->
+              <input type="hidden" name="product_id" id="formProductId" value="{{ $defaultProd->id }}">
+              <input type="hidden" name="quantity" id="formQuantity" value="1">
+
+              <!-- Selected Product Row in Cart -->
+              <div id="selectedProductBox" class="selected-product-box">
+                <div class="selected-prod-left">
+                  <img id="cartProductImg" src="{{ $defaultProd->image_url }}" alt="{{ $defaultProd->name }}" class="selected-prod-img" width="60" height="60">
+                  <div>
+                    <div id="cartProductName" class="selected-prod-name">{{ $defaultProd->name }}</div>
+                    <div id="cartProductUnitPrice" class="selected-prod-unit-price">৳{{ number_format($defaultProd->sale_price, 2) }}</div>
+                  </div>
+                </div>
+
+                <div class="selected-prod-qty-col">
+                  <div class="qty-label">পরিমাণ</div>
+                  <div class="qty-control-box">
+                    <button type="button" id="btnQtyMinus" class="qty-btn" aria-label="Decrease quantity">−</button>
+                    <span id="cartProductQty" class="qty-number">1</span>
+                    <button type="button" id="btnQtyPlus" class="qty-btn" aria-label="Increase quantity">+</button>
+                  </div>
+                </div>
+
+                <div class="selected-prod-total-col">
+                  <div>
+                    <div class="subtotal-label">সর্বমোট</div>
+                    <div id="cartProductSubtotal" class="subtotal-val">৳{{ number_format($defaultProd->sale_price, 2) }}</div>
+                  </div>
+                </div>
+              </div>
+            @endif
+
+            <!-- Hidden Delivery Area -->
             <input type="hidden" name="delivery_area" id="formDeliveryArea" value="outside_dhaka">
 
             <!-- Delivery Area Selection -->
@@ -840,94 +902,204 @@
 @if($defaultProd)
 <script>
   document.addEventListener('DOMContentLoaded', function () {
-    // Current Active Product State
-    let activeProduct = {
-      id: {{ $defaultProd->id }},
-      name: "{{ addslashes($defaultProd->name) }}",
-      price: {{ $defaultProd->sale_price }},
-      img: "{{ $defaultProd->image_url }}"
-    };
+    const isMultiMode = document.getElementById('multiProductsList') !== null;
 
-    let currentQty = 1;
     let currentDeliveryCharge = {{ $deliveryOutside }};
     let currentDeliveryArea = 'outside_dhaka';
 
-    const cartProductName = document.getElementById('cartProductName');
-    const cartProductUnitPrice = document.getElementById('cartProductUnitPrice');
-    const cartProductImg = document.getElementById('cartProductImg');
-    const cartQtyDisplay = document.getElementById('cartProductQty');
-    const cartProductSubtotal = document.getElementById('cartProductSubtotal');
     const summaryProductPrice = document.getElementById('summaryProductPrice');
     const summaryDeliveryPrice = document.getElementById('summaryDeliveryPrice');
     const summaryTotalPrice = document.getElementById('summaryTotalPrice');
-
-    const formProductId = document.getElementById('formProductId');
-    const formQuantity = document.getElementById('formQuantity');
     const formDeliveryArea = document.getElementById('formDeliveryArea');
 
-    function updateOrderCalculations() {
-      if (!cartProductName || !formProductId) return;
-      const subtotal = activeProduct.price * currentQty;
-      const total = subtotal + currentDeliveryCharge;
+    if (isMultiMode) {
+      // -------------------------------------------------------------
+      // MULTI-PRODUCT MODE (Option B: Pick multiple products together)
+      // -------------------------------------------------------------
+      function calculateMultiProductTotal() {
+        let subtotal = 0;
+        const checkboxes = document.querySelectorAll('.multi-prod-checkbox');
 
-      // Update Cart Preview
-      cartProductName.textContent = activeProduct.name;
-      cartProductUnitPrice.textContent = '৳' + activeProduct.price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-      cartProductImg.src = activeProduct.img;
-      cartQtyDisplay.textContent = currentQty;
-      cartProductSubtotal.textContent = '৳' + subtotal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        checkboxes.forEach(chk => {
+          const pId = chk.getAttribute('data-id');
+          const card = document.getElementById('multiProdCard' + pId);
+          const qtyInput = document.getElementById('qtyInput' + pId);
+          const price = parseFloat(chk.getAttribute('data-price')) || 0;
+          const qty = qtyInput ? parseInt(qtyInput.value, 10) || 1 : 1;
+          const lineTotalEl = document.getElementById('lineTotal' + pId);
 
-      // Update Summary Breakdown
-      summaryProductPrice.textContent = '৳' + subtotal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-      summaryDeliveryPrice.textContent = '৳' + currentDeliveryCharge.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-      summaryTotalPrice.textContent = '৳' + total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+          const lineTotal = price * qty;
+          if (lineTotalEl) {
+            lineTotalEl.textContent = '৳' + lineTotal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+          }
 
-      // Update Hidden Form Inputs
-      formProductId.value = activeProduct.id;
-      formQuantity.value = currentQty;
-      formDeliveryArea.value = currentDeliveryArea;
-    }
+          if (chk.checked) {
+            if (card) card.classList.add('selected');
+            subtotal += lineTotal;
+          } else {
+            if (card) card.classList.remove('selected');
+          }
+        });
 
-    // Product Selection Trigger (Cards & Buttons)
-    document.querySelectorAll('.select-product-btn').forEach(button => {
-      button.addEventListener('click', function (e) {
-        e.preventDefault();
-        activeProduct.id = parseInt(this.getAttribute('data-id'), 10);
-        activeProduct.name = this.getAttribute('data-name');
-        activeProduct.price = parseFloat(this.getAttribute('data-price'));
-        activeProduct.img = this.getAttribute('data-img');
+        const grandTotal = subtotal > 0 ? (subtotal + currentDeliveryCharge) : 0;
 
-        updateOrderCalculations();
-
-        // Smooth scroll to order section
-        const orderSection = document.getElementById('orderForm');
-        if (orderSection) {
-          orderSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        if (summaryProductPrice) {
+          summaryProductPrice.textContent = '৳' + subtotal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         }
+        if (summaryDeliveryPrice) {
+          summaryDeliveryPrice.textContent = '৳' + currentDeliveryCharge.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+        if (summaryTotalPrice) {
+          summaryTotalPrice.textContent = '৳' + grandTotal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+        if (formDeliveryArea) {
+          formDeliveryArea.value = currentDeliveryArea;
+        }
+      }
+
+      window.onMultiCheckChange = function(pId) {
+        calculateMultiProductTotal();
+      };
+
+      window.adjustMultiQty = function(pId, delta) {
+        const qtyInput = document.getElementById('qtyInput' + pId);
+        const qtyDisplay = document.getElementById('qtyDisplay' + pId);
+        const chk = document.getElementById('chkProd' + pId);
+
+        if (qtyInput) {
+          let qty = (parseInt(qtyInput.value, 10) || 1) + delta;
+          if (qty < 1) qty = 1;
+          if (qty > 50) qty = 50;
+          qtyInput.value = qty;
+          if (qtyDisplay) qtyDisplay.textContent = qty;
+        }
+
+        // Auto check if quantity was modified
+        if (chk && !chk.checked) {
+          chk.checked = true;
+        }
+
+        calculateMultiProductTotal();
+      };
+
+      // Grid/Featured button click in Multi Mode
+      document.querySelectorAll('.select-product-btn').forEach(button => {
+        button.addEventListener('click', function (e) {
+          e.preventDefault();
+          const pId = parseInt(this.getAttribute('data-id'), 10);
+          const targetChk = document.getElementById('chkProd' + pId);
+          if (targetChk) {
+            targetChk.checked = true;
+            calculateMultiProductTotal();
+          }
+
+          const orderSection = document.getElementById('orderForm');
+          if (orderSection) {
+            orderSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        });
       });
-    });
 
-    // Quantity Increment / Decrement
-    const btnMinus = document.getElementById('btnQtyMinus');
-    const btnPlus = document.getElementById('btnQtyPlus');
+      // Checkout form submit validation in Multi Mode
+      const checkoutForm = document.getElementById('checkoutOrderForm');
+      if (checkoutForm) {
+        checkoutForm.addEventListener('submit', function (e) {
+          const checkedCount = document.querySelectorAll('.multi-prod-checkbox:checked').length;
+          if (checkedCount === 0) {
+            e.preventDefault();
+            alert('অনুগ্রহ করে কমপক্ষে একটি মধু প্যাকেজ নির্বাচন করুন।');
+            const list = document.getElementById('multiProductsList');
+            if (list) list.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            return false;
+          }
+        });
+      }
 
-    if (btnMinus) {
-      btnMinus.addEventListener('click', function () {
-        if (currentQty > 1) {
-          currentQty--;
+      // Initial calculation
+      calculateMultiProductTotal();
+
+    } else {
+      // -------------------------------------------------------------
+      // SINGLE PRODUCT MODE
+      // -------------------------------------------------------------
+      let activeProduct = {
+        id: {{ $defaultProd->id }},
+        name: "{{ addslashes($defaultProd->name) }}",
+        price: {{ $defaultProd->sale_price }},
+        img: "{{ $defaultProd->image_url }}"
+      };
+
+      let currentQty = 1;
+
+      const cartProductName = document.getElementById('cartProductName');
+      const cartProductUnitPrice = document.getElementById('cartProductUnitPrice');
+      const cartProductImg = document.getElementById('cartProductImg');
+      const cartQtyDisplay = document.getElementById('cartProductQty');
+      const cartProductSubtotal = document.getElementById('cartProductSubtotal');
+      const formProductId = document.getElementById('formProductId');
+      const formQuantity = document.getElementById('formQuantity');
+
+      function updateOrderCalculations() {
+        if (!cartProductName || !formProductId) return;
+        const subtotal = activeProduct.price * currentQty;
+        const total = subtotal + currentDeliveryCharge;
+
+        cartProductName.textContent = activeProduct.name;
+        cartProductUnitPrice.textContent = '৳' + activeProduct.price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        cartProductImg.src = activeProduct.img;
+        cartQtyDisplay.textContent = currentQty;
+        cartProductSubtotal.textContent = '৳' + subtotal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+        summaryProductPrice.textContent = '৳' + subtotal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        summaryDeliveryPrice.textContent = '৳' + currentDeliveryCharge.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        summaryTotalPrice.textContent = '৳' + total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+        formProductId.value = activeProduct.id;
+        formQuantity.value = currentQty;
+        formDeliveryArea.value = currentDeliveryArea;
+      }
+
+      document.querySelectorAll('.select-product-btn').forEach(button => {
+        button.addEventListener('click', function (e) {
+          e.preventDefault();
+          const pId = parseInt(this.getAttribute('data-id'), 10);
+          activeProduct.id = pId;
+          activeProduct.name = this.getAttribute('data-name');
+          activeProduct.price = parseFloat(this.getAttribute('data-price'));
+          activeProduct.img = this.getAttribute('data-img');
+
           updateOrderCalculations();
-        }
+
+          const orderSection = document.getElementById('orderForm');
+          if (orderSection) {
+            orderSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        });
       });
+
+      const btnMinus = document.getElementById('btnQtyMinus');
+      const btnPlus = document.getElementById('btnQtyPlus');
+
+      if (btnMinus) {
+        btnMinus.addEventListener('click', function () {
+          if (currentQty > 1) {
+            currentQty--;
+            updateOrderCalculations();
+          }
+        });
+      }
+
+      if (btnPlus) {
+        btnPlus.addEventListener('click', function () {
+          currentQty++;
+          updateOrderCalculations();
+        });
+      }
+
+      updateOrderCalculations();
     }
 
-    if (btnPlus) {
-      btnPlus.addEventListener('click', function () {
-        currentQty++;
-        updateOrderCalculations();
-      });
-    }
-
-    // Delivery Area Selection Toggle
+    // Delivery Area Selection Toggle (Shared for both Single & Multi modes)
     const deliveryCards = document.querySelectorAll('.delivery-radio-card');
     deliveryCards.forEach(card => {
       card.addEventListener('click', function () {
@@ -936,12 +1108,14 @@
 
         currentDeliveryCharge = parseFloat(this.getAttribute('data-charge')) || 0;
         currentDeliveryArea = this.getAttribute('data-area') || 'outside_dhaka';
-        updateOrderCalculations();
+
+        if (isMultiMode) {
+          calculateMultiProductTotal();
+        } else {
+          updateOrderCalculations();
+        }
       });
     });
-
-    // Initialize state
-    updateOrderCalculations();
   });
 </script>
 @endif
