@@ -22,6 +22,10 @@
             <span class="fw-bold text-dark fs-5">{{ $order->order_number }}</span>
           </div>
           <div class="d-flex justify-content-between mb-2">
+            <span class="text-muted">অর্ডারের সময়:</span>
+            <span class="fw-bold text-dark">{{ $order->created_at->timezone('Asia/Dhaka')->format('d M, Y — h:i A') }} (বাংলাদেশ সময়)</span>
+          </div>
+          <div class="d-flex justify-content-between mb-2">
             <span class="text-muted">গ্রাহকের নাম:</span>
             <span class="fw-bold text-dark">{{ $order->customer_name }}</span>
           </div>

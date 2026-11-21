@@ -128,7 +128,7 @@
                       <span class="badge badge-danger">Cancelled</span>
                     @endif
                   </td>
-                  <td>{{ $order->created_at->format('d M, Y h:i A') }}</td>
+                  <td>{{ $order->created_at->timezone('Asia/Dhaka')->format('d M, Y h:i A') }}</td>
                   <td>
                     <a href="{{ route('admin.orders.show', $order->id) }}" class="btn btn-xs btn-info" title="View Details">
                       <i class="fas fa-eye"></i>

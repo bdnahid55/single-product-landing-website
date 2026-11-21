@@ -45,7 +45,7 @@ class Order extends Model
     {
         $prefix = 'ORD-';
         $random = strtoupper(bin2hex(random_bytes(3))); // 6 hex chars
-        $timestamp = date('ymd');
+        $timestamp = now()->timezone('Asia/Dhaka')->format('ymd');
         return $prefix . $timestamp . '-' . $random;
     }
 }

@@ -24,6 +24,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        date_default_timezone_set(config('app.timezone', 'Asia/Dhaka'));
+
         Schema::defaultStringLength(191);
 
         // Dynamically load SMTP / Mail credentials from database

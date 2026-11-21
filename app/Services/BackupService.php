@@ -28,7 +28,7 @@ class BackupService
      */
     public function createBackup(string $type = 'full'): string
     {
-        $timestamp = Carbon::now()->format('Y-m-d-H-i-s');
+        $timestamp = Carbon::now('Asia/Dhaka')->format('Y-m-d-H-i-s');
         $zipFileName = "modhu-backup-{$timestamp}.zip";
         $zipPath = $this->backupDir . DIRECTORY_SEPARATOR . $zipFileName;
 
@@ -105,7 +105,7 @@ class BackupService
     protected function dumpDatabase(): array
     {
         $driver = config('database.default', 'mysql');
-        $timestamp = Carbon::now()->format('Y-m-d-H-i-s');
+        $timestamp = Carbon::now('Asia/Dhaka')->format('Y-m-d-H-i-s');
         $result = [];
 
         if ($driver === 'sqlite') {
@@ -221,7 +221,7 @@ class BackupService
         $header = "-- ============================================================\n"
                 . "-- Modhu Database Backup (Native PDO Engine)\n"
                 . "-- Database: {$databaseName}\n"
-                . "-- Created At: " . Carbon::now()->toIso8601String() . "\n"
+                . "-- Created At: " . Carbon::now('Asia/Dhaka')->toIso8601String() . " (GMT+6)\n"
                 . "-- ============================================================\n\n"
                 . "SET NAMES utf8mb4;\n"
                 . "SET FOREIGN_KEY_CHECKS = 0;\n"
@@ -327,7 +327,7 @@ class BackupService
             return;
         }
 
-        $header = "-- SQLite Database Backup\n-- Created At: " . Carbon::now()->toIso8601String() . "\nPRAGMA foreign_keys=OFF;\nBEGIN TRANSACTION;\n\n";
+        $header = "-- SQLite Database Backup\n-- Created At: " . Carbon::now('Asia/Dhaka')->toIso8601String() . " (GMT+6)\nPRAGMA foreign_keys=OFF;\nBEGIN TRANSACTION;\n\n";
         fwrite($handle, $header);
 
         $tables = Schema::getTableListing();
@@ -394,7 +394,7 @@ class BackupService
         return [
             'app_name'        => config('app.name', 'Modhu'),
             'backup_type'     => $type,
-            'created_at'      => Carbon::now()->toIso8601String(),
+            'created_at'      => Carbon::now('Asia/Dhaka')->toIso8601String(),
             'database_driver' => config('database.default'),
             'database_name'   => DB::connection()->getDatabaseName(),
             'laravel_version' => app()->version(),

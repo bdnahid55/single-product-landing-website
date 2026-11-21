@@ -180,8 +180,8 @@
     <!-- Quick Meta Box -->
     <div class="card card-outline card-secondary shadow-sm">
       <div class="card-body">
-        <p class="mb-1 text-muted">Placed At:</p>
-        <p><strong>{{ $order->created_at->format('F d, Y h:i:s A') }}</strong></p>
+        <p class="mb-1 text-muted">Placed At (BST / GMT+6):</p>
+        <p><strong>{{ $order->created_at->timezone('Asia/Dhaka')->format('F d, Y h:i:s A') }}</strong></p>
         <p class="mb-1 text-muted">Payment Method:</p>
         <p>
           @if($order->payment_method === 'sslcommerz')

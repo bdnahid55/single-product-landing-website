@@ -29,7 +29,7 @@
             <thead>
               <tr>
                 <th>Order #</th>
-                <th>Date</th>
+                <th>তারিখ ও সময় (BST)</th>
                 <th>Customer</th>
                 <th>Phone</th>
                 <th>Delivery Area</th>
@@ -47,7 +47,7 @@
                       {{ $order->order_number }}
                     </a>
                   </td>
-                  <td>{{ $order->created_at->format('d M, Y h:i A') }}</td>
+                  <td>{{ $order->created_at->timezone('Asia/Dhaka')->format('d M, Y h:i A') }}</td>
                   <td><strong>{{ $order->customer_name }}</strong></td>
                   <td><a href="tel:{{ $order->customer_phone }}">{{ $order->customer_phone }}</a></td>
                   <td>

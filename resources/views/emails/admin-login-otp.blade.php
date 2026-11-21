@@ -108,7 +108,7 @@
       </div>
 
       <p style="font-size: 12px; color: #777777; margin-bottom: 0;">
-        অনুরোধের সময়: {{ now()->format('d M, Y h:i A') }} (IP: {{ request()->ip() }})
+        অনুরোধের সময়: {{ now()->timezone('Asia/Dhaka')->format('d M, Y h:i A') }} (বাংলাদেশ সময় / GMT+6) • IP: {{ request()->ip() }}
       </p>
     </div>
 

@@ -147,6 +147,7 @@ APP_ENV=local
 APP_KEY=
 APP_DEBUG=true
 APP_URL=http://127.0.0.1:8000
+APP_TIMEZONE=Asia/Dhaka
 
 DB_CONNECTION=mysql
 DB_HOST=127.0.0.1
@@ -291,6 +292,7 @@ On your local computer, open terminal or file explorer and create a `.zip` file 
    APP_KEY=base64:YourGeneratedAppKeyHere=
    APP_DEBUG=false
    APP_URL=https://yourdomain.com
+   APP_TIMEZONE=Asia/Dhaka
 
    DB_CONNECTION=mysql
    DB_HOST=127.0.0.1

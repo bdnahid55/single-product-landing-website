@@ -65,7 +65,7 @@
                   </td>
                   <td>
                     <small class="text-muted">
-                      <i class="far fa-clock mr-1"></i>{{ $u->created_at ? $u->created_at->format('d M, Y h:i A') : '—' }}
+                      <i class="far fa-clock mr-1"></i>{{ $u->created_at ? $u->created_at->timezone('Asia/Dhaka')->format('d M, Y h:i A') : '—' }}
                     </small>
                   </td>
                   <td class="text-center">

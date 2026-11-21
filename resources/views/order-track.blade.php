@@ -230,7 +230,7 @@
               <span class="text-muted small d-block">অর্ডার ট্র্যাকিং ফলাফল:</span>
               <h3 class="fw-bold text-dark mb-0">অর্ডার #{{ $order->order_number }}</h3>
               <small class="text-muted">
-                <i class="bi bi-calendar-check me-1"></i>{{ $order->created_at->format('d M, Y — h:i A') }}
+                <i class="bi bi-calendar-check me-1"></i>{{ $order->created_at->timezone('Asia/Dhaka')->format('d M, Y — h:i A') }} (বাংলাদেশ সময়)
               </small>
             </div>
             <div class="mt-3 mt-md-0">

@@ -460,8 +460,8 @@
       <div class="meta-card">
         <div class="meta-card-title">Order Information</div>
         <div class="meta-card-body">
-          <div><span class="text-muted">Order Date:</span> <strong>{{ $order->created_at->format('d M, Y') }}</strong></div>
-          <div><span class="text-muted">Order Time:</span> {{ $order->created_at->format('h:i A') }}</div>
+          <div><span class="text-muted">Order Date:</span> <strong>{{ $order->created_at->timezone('Asia/Dhaka')->format('d M, Y') }}</strong></div>
+          <div><span class="text-muted">Order Time:</span> {{ $order->created_at->timezone('Asia/Dhaka')->format('h:i A') }} <span class="text-muted" style="font-size: 0.8rem;">(BST)</span></div>
           <div class="mt-2">
             @if($isPaidOnline)
               <div class="paid-stamp">
@@ -609,7 +609,7 @@
     <div class="invoice-footer">
       <div>ধন্যবাদ আমাদের সাথে থাকার জন্য</div>
       <div class="mt-1" style="font-size: 0.75rem;">
-        Generated on {{ now()->format('d M, Y h:i A') }} • Powered by {{ config('app.name', '') }}
+        Generated on {{ now()->timezone('Asia/Dhaka')->format('d M, Y h:i A') }} (BST / GMT+6) • Powered by {{ config('app.name', '') }}
       </div>
     </div>
 

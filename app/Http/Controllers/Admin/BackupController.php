@@ -38,8 +38,8 @@ class BackupController extends Controller
                         'path'       => $file->getPathname(),
                         'size'       => $this->formatBytes($bytes),
                         'raw_size'   => $bytes,
-                        'date'       => Carbon::createFromTimestamp($file->getMTime())->format('d M, Y h:i A'),
-                        'age'        => Carbon::createFromTimestamp($file->getMTime())->diffForHumans(),
+                        'date'       => Carbon::createFromTimestamp($file->getMTime(), 'Asia/Dhaka')->format('d M, Y h:i A') . ' (GMT+6)',
+                        'age'        => Carbon::createFromTimestamp($file->getMTime(), 'Asia/Dhaka')->diffForHumans(),
                     ];
                 }
             }

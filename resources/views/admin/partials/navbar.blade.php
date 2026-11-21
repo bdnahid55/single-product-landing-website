@@ -12,7 +12,14 @@
   </ul>
 
   <!-- Right navbar links -->
-  <ul class="navbar-nav ml-auto">
+  <ul class="navbar-nav ml-auto align-items-center">
+    <!-- Bangladesh Standard Time (GMT+6) Badge -->
+    <li class="nav-item d-none d-md-inline-block mr-3">
+      <span class="badge badge-light border text-muted px-2 py-1 font-weight-normal" style="font-size: 0.82rem;">
+        <i class="far fa-clock text-success mr-1"></i> <span id="bdLiveClock">{{ now()->timezone('Asia/Dhaka')->format('d M, Y h:i A') }}</span> (GMT+6)
+      </span>
+    </li>
+
     <!-- Full Screen Button -->
     <li class="nav-item">
       <a class="nav-link" data-widget="fullscreen" href="#" role="button">
