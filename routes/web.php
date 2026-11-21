@@ -10,6 +10,7 @@ use App\Http\Controllers\Admin\OrderController as AdminOrderController;
 use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Admin\ReviewController;
 use App\Http\Controllers\Admin\SectionController;
+use App\Http\Controllers\Admin\UserController;
 
 /*
 |--------------------------------------------------------------------------
@@ -76,4 +77,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     // Site & SEO Settings Management
     Route::get('/settings', [SettingController::class, 'index'])->name('settings.index');
     Route::put('/settings', [SettingController::class, 'update'])->name('settings.update');
+
+    // Admin Accounts Management
+    Route::resource('users', UserController::class)->except(['show']);
 });

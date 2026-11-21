@@ -683,4 +683,61 @@ class OrderAndAdminTest extends TestCase
         $homeResp->assertSee('background-color: #112233 !important;', false);
         $homeResp->assertSee('color: #ffffff !important;', false);
     }
+
+    public function test_admin_can_manage_admin_accounts(): void
+    {
+        // 1. View admin accounts list
+        $listResp = $this->actingAs($this->admin)->get('/admin/users');
+        $listResp->assertStatus(200);
+        $listResp->assertSee('Admin Accounts Management');
+        $listResp->assertSee($this->admin->email);
+
+        // 2. View create form
+        $createFormResp = $this->actingAs($this->admin)->get('/admin/users/create');
+        $createFormResp->assertStatus(200);
+        $createFormResp->assertSee('নতুন অ্যাডমিন তৈরি করুন');
+
+        // 3. Create a new admin
+        $storeResp = $this->actingAs($this->admin)->post('/admin/users', [
+            'name'                  => 'সহকারী অ্যাডমিন',
+            'email'                 => 'assistant@modhu.com',
+            'phone'                 => '01755555555',
+            'password'              => 'secure123',
+            'password_confirmation' => 'secure123',
+        ]);
+        $storeResp->assertRedirect(route('admin.users.index'));
+        $storeResp->assertSessionHas('success');
+
+        $newAdmin = User::where('email', 'assistant@modhu.com')->first();
+        $this->assertNotNull($newAdmin);
+        $this->assertTrue($newAdmin->is_admin);
+
+        // 4. Test that the new admin can log in
+        $loginResp = $this->post('/admin/login', [
+            'email'    => 'assistant@modhu.com',
+            'password' => 'secure123',
+        ]);
+        $loginResp->assertRedirect(route('admin.dashboard'));
+
+        // 5. Edit the new admin
+        $editResp = $this->actingAs($this->admin)->put("/admin/users/{$newAdmin->id}", [
+            'name'  => 'সহকারী অ্যাডমিন (আপডেটেড)',
+            'email' => 'assistant_updated@modhu.com',
+            'phone' => '01766666666',
+        ]);
+        $editResp->assertRedirect(route('admin.users.index'));
+        $newAdmin->refresh();
+        $this->assertEquals('সহকারী অ্যাডমিন (আপডেটেড)', $newAdmin->name);
+        $this->assertEquals('assistant_updated@modhu.com', $newAdmin->email);
+
+        // 6. Current admin cannot delete their own account
+        $selfDeleteResp = $this->actingAs($this->admin)->delete("/admin/users/{$this->admin->id}");
+        $selfDeleteResp->assertSessionHas('error');
+
+        // 7. Delete the newly created admin account
+        $deleteResp = $this->actingAs($this->admin)->delete("/admin/users/{$newAdmin->id}");
+        $deleteResp->assertRedirect(route('admin.users.index'));
+        $deleteResp->assertSessionHas('success');
+        $this->assertNull(User::find($newAdmin->id));
+    }
 }
