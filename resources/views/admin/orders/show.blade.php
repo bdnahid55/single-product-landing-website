@@ -183,7 +183,24 @@
         <p class="mb-1 text-muted">Placed At:</p>
         <p><strong>{{ $order->created_at->format('F d, Y h:i:s A') }}</strong></p>
         <p class="mb-1 text-muted">Payment Method:</p>
-        <p><strong>{{ strtoupper($order->payment_method) }} (Cash on Delivery)</strong></p>
+        <p>
+          @if($order->payment_method === 'sslcommerz')
+            <strong class="text-primary"><i class="fas fa-credit-card mr-1"></i> SSLCommerz (Online)</strong>
+            @if($order->payment_status === 'paid')
+              <span class="badge badge-success ml-1"><i class="fas fa-check-circle mr-1"></i> Paid</span>
+            @else
+              <span class="badge badge-warning ml-1"><i class="fas fa-clock mr-1"></i> Unpaid</span>
+            @endif
+            @if($order->transaction_id)
+              <br><small class="text-muted">Trx ID: <code class="text-dark">{{ $order->transaction_id }}</code></small>
+            @endif
+            @if($order->card_type)
+              <br><small class="text-muted">Card / Method: <strong>{{ $order->card_type }}</strong></small>
+            @endif
+          @else
+            <strong><i class="fas fa-truck mr-1 text-secondary"></i> Cash on Delivery (COD)</strong>
+          @endif
+        </p>
       </div>
     </div>
   </div>

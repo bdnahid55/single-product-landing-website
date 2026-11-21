@@ -76,11 +76,28 @@
       </div>
 
       <div class="col-sm-4 invoice-col">
-        <b>Invoice #{{ $order->order_number }}</b><br>
-        <br>
-        <b>Order Date:</b> {{ $order->created_at->format('d M, Y h:i A') }}<br>
-        <b>Payment:</b> {{ strtoupper($order->payment_method) }} ({{ ucfirst($order->payment_status) }})<br>
-        <b>Status:</b> {{ ucfirst($order->order_status) }}
+        <div class="d-flex justify-content-between align-items-start">
+          <div>
+            <b>Invoice #{{ $order->order_number }}</b><br>
+            <b>Order Date:</b> {{ $order->created_at->format('d M, Y h:i A') }}<br>
+            <b>Payment:</b> 
+            @if($order->payment_method === 'sslcommerz')
+              <span class="badge {{ $order->payment_status === 'paid' ? 'badge-success' : 'badge-warning' }} px-2 py-1">
+                ONLINE (SSLCOMMERZ) - {{ strtoupper($order->payment_status) }}
+              </span>
+            @else
+              <span class="badge badge-secondary px-2 py-1">CASH ON DELIVERY (COD)</span>
+            @endif
+            <br>
+            <b>Status:</b> <span class="badge badge-light border text-capitalize">{{ $order->order_status }}</span>
+          </div>
+          @if($order->payment_status === 'paid')
+            <div class="text-center ml-2 border border-success rounded p-2" style="border: 2px solid #28a745 !important; background-color: #f6ffed;">
+              <span class="text-success font-weight-bold d-block" style="font-size: 1.1rem; letter-spacing: 2px;">PAID</span>
+              <small class="text-success d-block" style="font-size: 0.75rem;">পরিশোধিত</small>
+            </div>
+          @endif
+        </div>
       </div>
     </div>
 
@@ -117,31 +134,84 @@
     <div class="row">
       <!-- accepted payments column -->
       <div class="col-6">
-        <p class="lead">Payment Method:</p>
-        <p class="text-muted well well-sm shadow-none" style="margin-top: 10px;">
-          Cash on Delivery (COD). Please collect <strong>৳{{ number_format($order->total_amount, 2) }}</strong> upon parcel delivery.
-        </p>
+        <p class="lead font-weight-bold mb-2">Payment Details:</p>
+        
+        @if($order->payment_method === 'sslcommerz' && $order->payment_status === 'paid')
+          <div class="p-3 rounded border border-success" style="background-color: #f0fdf4;">
+            <div class="d-flex align-items-center text-success mb-2">
+              <i class="fas fa-check-circle fa-lg mr-2"></i>
+              <strong style="font-size: 1.05rem;">Online Payment Received (SSLCommerz)</strong>
+            </div>
+            <p class="text-dark mb-0" style="font-size: 0.95rem;">
+              This parcel has already been <strong>PAID IN FULL</strong>.<br>
+              <span class="text-danger font-weight-bold"><i class="fas fa-exclamation-circle mr-1"></i> Do NOT collect any cash from the customer upon delivery.</span>
+            </p>
+          </div>
+        @elseif($order->payment_method === 'sslcommerz' && $order->payment_status !== 'paid')
+          <div class="p-3 rounded border border-warning" style="background-color: #fffbeb;">
+            <div class="d-flex align-items-center text-warning mb-2" style="color: #b45309 !important;">
+              <i class="fas fa-exclamation-triangle fa-lg mr-2"></i>
+              <strong style="font-size: 1.05rem;">Online Payment Pending (Unpaid)</strong>
+            </div>
+            <p class="text-dark mb-0" style="font-size: 0.95rem;">
+              The customer selected SSLCommerz but online payment was not completed. If fulfilling as Cash on Delivery, please collect <strong>৳{{ number_format($order->total_amount, 2) }}</strong> upon parcel delivery.
+            </p>
+          </div>
+        @else
+          <div class="p-3 rounded border bg-light">
+            <div class="d-flex align-items-center text-secondary mb-2">
+              <i class="fas fa-truck fa-lg mr-2 text-primary"></i>
+              <strong style="font-size: 1.05rem;" class="text-dark">Cash on Delivery (COD)</strong>
+            </div>
+            <p class="text-dark mb-0" style="font-size: 0.95rem;">
+              Please collect <strong>৳{{ number_format($order->total_amount, 2) }}</strong> in cash from the customer upon parcel delivery.
+            </p>
+          </div>
+        @endif
+
         @if($order->customer_notes)
-          <p class="text-muted"><strong>Customer Note:</strong> {{ $order->customer_notes }}</p>
+          <div class="mt-3 p-2 bg-light rounded border small">
+            <strong>Customer Note:</strong> {{ $order->customer_notes }}
+          </div>
         @endif
       </div>
 
       <!-- amount column -->
       <div class="col-6">
         <div class="table-responsive">
-          <table class="table">
+          <table class="table mb-0">
             <tr>
-              <th style="width:50%">Subtotal:</th>
+              <th style="width:55%">Subtotal:</th>
               <td class="text-right">৳{{ number_format($order->subtotal, 2) }}</td>
             </tr>
             <tr>
-              <th>Delivery Charge:</th>
+              <th>Delivery Charge ({{ $order->delivery_area == 'inside_dhaka' ? 'Inside Dhaka' : 'Outside Dhaka' }}):</th>
               <td class="text-right">৳{{ number_format($order->delivery_charge, 2) }}</td>
             </tr>
-            <tr class="bg-light">
-              <th class="h5">Total Payable:</th>
-              <td class="text-right h5 font-weight-bold text-success">৳{{ number_format($order->total_amount, 2) }}</td>
+            <tr class="border-top">
+              <th class="font-weight-bold">Total Amount:</th>
+              <td class="text-right font-weight-bold">৳{{ number_format($order->total_amount, 2) }}</td>
             </tr>
+
+            @if($order->payment_method === 'sslcommerz' && $order->payment_status === 'paid')
+              <tr class="text-success" style="background-color: #f0fdf4;">
+                <th class="align-middle">Paid (Online - SSLCommerz):</th>
+                <td class="text-right font-weight-bold align-middle">-৳{{ number_format($order->total_amount, 2) }}</td>
+              </tr>
+              <tr class="bg-success text-white">
+                <th class="h5 m-0 align-middle font-weight-bold">Due / Collect from Customer:</th>
+                <td class="text-right h5 m-0 font-weight-bold align-middle">৳0.00</td>
+              </tr>
+            @else
+              <tr class="text-muted">
+                <th>Paid Amount:</th>
+                <td class="text-right">৳0.00</td>
+              </tr>
+              <tr class="bg-light">
+                <th class="h5 m-0 align-middle font-weight-bold">Total Payable (COD):</th>
+                <td class="text-right h5 m-0 font-weight-bold text-danger align-middle">৳{{ number_format($order->total_amount, 2) }}</td>
+              </tr>
+            @endif
           </table>
         </div>
       </div>
