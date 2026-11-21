@@ -69,6 +69,11 @@
               <i class="fas fa-phone mr-1 text-info"></i> 9. Contacts & Footer
             </a>
           </li>
+          <li class="nav-item">
+            <a class="nav-link font-weight-bold" id="colors-tab" data-toggle="pill" href="#colors-pane" role="tab">
+              <i class="fas fa-palette mr-1 text-success"></i> 10. Section Colors (কালার ও থিম)
+            </a>
+          </li>
         </ul>
       </div>
 
@@ -707,6 +712,161 @@
                     <input type="text" name="footer_copyright_text" id="footer_copyright_text" class="form-control" value="{{ old('footer_copyright_text', $settings['footer_copyright_text'] ?? 'সর্বস্বত্ব সংরক্ষিত।') }}">
                   </div>
                 </div>
+              </div>
+            </div>
+
+            <!-- 10. Dynamic Section Colors Tab -->
+            <div class="tab-pane fade" id="colors-pane" role="tabpanel">
+              <div class="callout callout-success py-2 mb-4">
+                <h5><i class="fas fa-palette mr-1 text-success"></i> ল্যান্ডিং পেজ সেকশন ব্যাকগ্রাউন্ড ও ফন্ট কালার নিয়ন্ত্রণ</h5>
+                <p class="mb-0 text-muted">হিরো সেকশন ব্যতীত প্রতিটি সেকশনের ব্যাকগ্রাউন্ড কালার এবং ফন্ট কালার আপনার ইচ্ছামতো কাস্টমাইজ করুন।</p>
+              </div>
+
+              @php
+                $colorSectionsList = [
+                  [
+                    'title'         => '২. সমস্যা ও সমাধান সেকশন (Problem & Solution)',
+                    'selector'      => '#problemSolution',
+                    'bg_key'        => 'section_problem_bg',
+                    'color_key'     => 'section_problem_color',
+                    'default_bg'    => '#e2f1e6',
+                    'default_color' => '#111827',
+                  ],
+                  [
+                    'title'         => '৩. কেন আমাদের মধু সেরা (Why Choose Us)',
+                    'selector'      => '#whyUs',
+                    'bg_key'        => 'section_why_us_bg',
+                    'color_key'     => 'section_why_us_color',
+                    'default_bg'    => '#e2f1e6',
+                    'default_color' => '#111827',
+                  ],
+                  [
+                    'title'         => '৪. ফটো গ্যালারি সেকশন (Photo Gallery)',
+                    'selector'      => '#gallery',
+                    'bg_key'        => 'section_gallery_bg',
+                    'color_key'     => 'section_gallery_color',
+                    'default_bg'    => '#ffffff',
+                    'default_color' => '#111827',
+                  ],
+                  [
+                    'title'         => '৫. মধু প্যাকেজ ও ফিচার্ড পণ্য (Products Section)',
+                    'selector'      => '#featuredProduct',
+                    'bg_key'        => 'section_products_bg',
+                    'color_key'     => 'section_products_color',
+                    'default_bg'    => '#f4f8f5',
+                    'default_color' => '#111827',
+                  ],
+                  [
+                    'title'         => '৬. মধুর স্বাস্থ্য উপকারিতা (Honey Benefits)',
+                    'selector'      => '#benefits',
+                    'bg_key'        => 'section_benefits_bg',
+                    'color_key'     => 'section_benefits_color',
+                    'default_bg'    => '#0f2e1e',
+                    'default_color' => '#ffffff',
+                  ],
+                  [
+                    'title'         => '৭. ভিডিও ও প্রমো সেকশন (Video Showcase)',
+                    'selector'      => '#video',
+                    'bg_key'        => 'section_video_bg',
+                    'color_key'     => 'section_video_color',
+                    'default_bg'    => '#ffffff',
+                    'default_color' => '#111827',
+                  ],
+                  [
+                    'title'         => '৮. গ্রাহকদের মতামত (Customer Reviews)',
+                    'selector'      => '#reviews',
+                    'bg_key'        => 'section_reviews_bg',
+                    'color_key'     => 'section_reviews_color',
+                    'default_bg'    => '#f8fafc',
+                    'default_color' => '#111827',
+                  ],
+                  [
+                    'title'         => '৯. বিশেষ ডিসকাউন্ট ব্যানার (Discount Banner)',
+                    'selector'      => '#discount',
+                    'bg_key'        => 'section_discount_bg',
+                    'color_key'     => 'section_discount_color',
+                    'default_bg'    => '#ffffff',
+                    'default_color' => '#111827',
+                  ],
+                  [
+                    'title'         => '১০. সরাসরি অর্ডার ফর্ম সেকশন (Order Form)',
+                    'selector'      => '#orderForm',
+                    'bg_key'        => 'section_order_form_bg',
+                    'color_key'     => 'section_order_form_color',
+                    'default_bg'    => '#ffffff',
+                    'default_color' => '#111827',
+                  ],
+                  [
+                    'title'         => '১১. ফুটার সেকশন (Footer Section)',
+                    'selector'      => '#footer',
+                    'bg_key'        => 'section_footer_bg',
+                    'color_key'     => 'section_footer_color',
+                    'default_bg'    => '#0f2e1e',
+                    'default_color' => '#d1fae5',
+                  ],
+                ];
+              @endphp
+
+              <div class="row">
+                @foreach($colorSectionsList as $cSec)
+                  @php
+                    $curBg = $settings[$cSec['bg_key']] ?? $cSec['default_bg'];
+                    $curColor = $settings[$cSec['color_key']] ?? $cSec['default_color'];
+                  @endphp
+                  <div class="col-lg-6 col-12 mb-3">
+                    <div class="card card-outline card-light shadow-sm h-100 border">
+                      <div class="card-header bg-light py-2">
+                        <h6 class="font-weight-bold mb-0 text-dark">
+                          {{ $cSec['title'] }}
+                        </h6>
+                      </div>
+                      <div class="card-body py-3">
+                        <div class="row">
+                          <div class="col-6">
+                            <label class="small font-weight-bold text-dark d-block mb-1">
+                              🎨 ব্যাকগ্রাউন্ড কালার:
+                            </label>
+                            <div class="d-flex align-items-center" style="gap: 6px;">
+                              <input type="color" 
+                                     id="set_{{ $cSec['bg_key'] }}_picker" 
+                                     value="{{ $curBg }}" 
+                                     class="form-control form-control-sm p-0 border shadow-sm" 
+                                     style="width: 36px; height: 34px; cursor: pointer; border-radius: 6px;"
+                                     onchange="document.getElementById('set_{{ $cSec['bg_key'] }}').value = this.value">
+                              <input type="text" 
+                                     name="{{ $cSec['bg_key'] }}" 
+                                     id="set_{{ $cSec['bg_key'] }}" 
+                                     value="{{ $curBg }}" 
+                                     class="form-control form-control-sm text-center font-weight-bold" 
+                                     placeholder="#hex"
+                                     oninput="if(this.value.match(/^#[0-9A-Fa-f]{6}$/)) document.getElementById('set_{{ $cSec['bg_key'] }}_picker').value = this.value">
+                            </div>
+                          </div>
+                          <div class="col-6">
+                            <label class="small font-weight-bold text-dark d-block mb-1">
+                              🔤 ফন্ট / টেক্সট কালার:
+                            </label>
+                            <div class="d-flex align-items-center" style="gap: 6px;">
+                              <input type="color" 
+                                     id="set_{{ $cSec['color_key'] }}_picker" 
+                                     value="{{ $curColor }}" 
+                                     class="form-control form-control-sm p-0 border shadow-sm" 
+                                     style="width: 36px; height: 34px; cursor: pointer; border-radius: 6px;"
+                                     onchange="document.getElementById('set_{{ $cSec['color_key'] }}').value = this.value">
+                              <input type="text" 
+                                     name="{{ $cSec['color_key'] }}" 
+                                     id="set_{{ $cSec['color_key'] }}" 
+                                     value="{{ $curColor }}" 
+                                     class="form-control form-control-sm text-center font-weight-bold" 
+                                     placeholder="#hex"
+                                     oninput="if(this.value.match(/^#[0-9A-Fa-f]{6}$/)) document.getElementById('set_{{ $cSec['color_key'] }}_picker').value = this.value">
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                @endforeach
               </div>
             </div>
 

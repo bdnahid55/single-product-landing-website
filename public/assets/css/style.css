@@ -273,9 +273,10 @@ button {
 /* ==========================================================================
    3. Problem & Solution Section (#problemSolution) - Height ~550px
    ========================================================================== */
+#problemSolution,
 .problem-solution-section {
   padding: 50px 0 58px;
-  background-color: #ffffff;
+  background-color: #e2f1e6;
 }
 
 .problem-solution-container {
@@ -287,6 +288,7 @@ button {
   border-radius: 14px;
   padding: 28px 32px;
   min-height: 240px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.03);
 }
 
 .problem-card {
@@ -295,7 +297,7 @@ button {
 }
 
 .solution-card {
-  background-color: #f7fdf9;
+  background-color: #ffffff;
   border: 1px solid #bbf7d0;
 }
 
@@ -348,13 +350,14 @@ button {
 /* ==========================================================================
    4. Why Choose Us Section (#whyUs) - Height ~700px
    ========================================================================== */
+#whyUs,
 .why-us-section {
   padding: 55px 0 65px;
-  background-color: #ffffff;
+  background-color: #e2f1e6;
 }
 
 .why-card {
-  background-color: #fcfdfc;
+  background-color: #ffffff;
   border-radius: 16px;
   padding: 32px 28px;
   height: 100%;
@@ -362,6 +365,7 @@ button {
   flex-direction: column;
   align-items: flex-start;
   transition: transform 0.25s ease;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.03);
 }
 
 .why-card:hover {
@@ -460,7 +464,7 @@ button {
    ========================================================================== */
 .featured-product-section {
   padding: 45px 0 60px;
-  background-color: #ffffff;
+  background-color: #f4f8f5;
 }
 
 .featured-product-card {
@@ -774,6 +778,14 @@ button {
   pointer-events: none;
   white-space: nowrap;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* ==========================================================================
+   Customer Reviews Section (#reviews)
+   ========================================================================== */
+#reviews,
+.reviews-section {
+  background-color: #f8fafc;
 }
 
 /* ==========================================================================

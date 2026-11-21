@@ -545,4 +545,43 @@ class OrderAndAdminTest extends TestCase
         $home4->assertStatus(200);
         $home4->assertSee('এই পণ্যটি কিনুন 🛒');
     }
+
+    public function test_admin_can_customize_section_background_and_font_colors_excluding_hero(): void
+    {
+        // Visit Section Controls page
+        $viewResp = $this->actingAs($this->admin)->get('/admin/sections');
+        $viewResp->assertStatus(200);
+        $viewResp->assertSee('section_problem_bg');
+        $viewResp->assertSee('section_problem_color');
+        $viewResp->assertSee('হিরো ফিক্সড'); // Hero Section excluded indicator
+
+        // Update colors for Problem & Solution and Why Us sections
+        $updateResp = $this->actingAs($this->admin)->put('/admin/sections', [
+            'section_hero_show'     => '1',
+            'section_problem_show'  => '1',
+            'section_why_us_show'   => '1',
+            'section_problem_bg'    => '#ffeedd',
+            'section_problem_color' => '#332211',
+            'section_why_us_bg'     => '#112233',
+            'section_why_us_color'  => '#ffffff',
+        ]);
+
+        $updateResp->assertRedirect(route('admin.sections.index'));
+        $updateResp->assertSessionHas('success');
+
+        // Verify settings in database
+        $this->assertEquals('#ffeedd', Setting::get('section_problem_bg'));
+        $this->assertEquals('#332211', Setting::get('section_problem_color'));
+        $this->assertEquals('#112233', Setting::get('section_why_us_bg'));
+        $this->assertEquals('#ffffff', Setting::get('section_why_us_color'));
+
+        // Verify homepage renders dynamic styles
+        $homeResp = $this->get('/');
+        $homeResp->assertStatus(200);
+        $homeResp->assertSee('#problemSolution', false);
+        $homeResp->assertSee('background-color: #ffeedd !important;', false);
+        $homeResp->assertSee('color: #332211 !important;', false);
+        $homeResp->assertSee('background-color: #112233 !important;', false);
+        $homeResp->assertSee('color: #ffffff !important;', false);
+    }
 }

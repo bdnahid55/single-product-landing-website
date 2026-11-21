@@ -84,9 +84,19 @@
 
   <div class="card card-outline card-success shadow-sm">
     <div class="card-header bg-white py-3">
-      <h3 class="card-title font-weight-bold text-dark mb-0">
-        <i class="fas fa-list-check mr-2 text-success"></i> প্রতিটি সেকশনের অন/অফ স্ট্যাটাস নির্ধারণ করুন
-      </h3>
+      <div class="d-flex flex-wrap justify-content-between align-items-center">
+        <div>
+          <h3 class="card-title font-weight-bold text-dark mb-0">
+            <i class="fas fa-palette mr-2 text-success"></i> প্রতিটি সেকশনের অন/অফ স্ট্যাটাস, ব্যাকগ্রাউন্ড ও ফন্ট কালার নিয়ন্ত্রণ
+          </h3>
+          <p class="text-muted small mb-0 mt-1">
+            হিরো সেকশন ব্যতীত অন্যান্য সকল সেকশনের ব্যাকগ্রাউন্ড এবং ফন্ট কালার সরাসরি এখান থেকে সম্পূর্ণ ডায়নামিকভাবে পরিবর্তন করতে পারবেন।
+          </p>
+        </div>
+        <span class="badge badge-success px-3 py-2 font-weight-bold mt-2 mt-md-0">
+          <i class="fas fa-paint-brush mr-1"></i> Dynamic Section Theme
+        </span>
+      </div>
     </div>
 
     <div class="card-body p-0">
@@ -94,18 +104,22 @@
         <table class="table table-hover table-striped align-middle mb-0">
           <thead class="bg-light">
             <tr>
-              <th style="width: 50px;" class="text-center">#</th>
-              <th style="width: 320px;">সেকশনের নাম ও ধরন</th>
-              <th>সেকশনের বিবরণ ও অবস্থান</th>
-              <th style="width: 150px;" class="text-center">বর্তমান অবস্থা</th>
-              <th style="width: 220px;" class="text-center">প্রদর্শন নিয়ন্ত্রণ (Visibility)</th>
-              <th style="width: 180px;" class="text-center">কনটেন্ট অ্যাকশন</th>
+              <th style="width: 45px;" class="text-center">#</th>
+              <th style="width: 250px;">সেকশনের নাম ও ধরন</th>
+              <th style="width: 140px;" class="text-center">বর্তমান অবস্থা</th>
+              <th style="width: 180px;" class="text-center">প্রদর্শন নিয়ন্ত্রণ (Visibility)</th>
+              <th style="width: 180px;" class="text-center">🎨 ব্যাকগ্রাউন্ড কালার</th>
+              <th style="width: 180px;" class="text-center">🔤 ফন্ট / টেক্সট কালার</th>
+              <th style="width: 130px;" class="text-center">কনটেন্ট অ্যাকশন</th>
             </tr>
           </thead>
           <tbody>
             @foreach($sections as $index => $sec)
               @php
                 $isEnabled = ($settings[$sec['key']] ?? '1') == '1';
+                $hasColors = !empty($sec['has_colors']);
+                $bgVal = $hasColors ? ($settings[$sec['bg_key']] ?? $sec['default_bg']) : null;
+                $colorVal = $hasColors ? ($settings[$sec['color_key']] ?? $sec['default_color']) : null;
               @endphp
               <tr class="{{ $isEnabled ? '' : 'table-light text-muted' }}" id="row_{{ $sec['key'] }}">
                 <td class="text-center font-weight-bold text-muted">{{ $index + 1 }}</td>
@@ -120,10 +134,6 @@
                     </div>
                   </div>
                 </td>
-                <td>
-                  <p class="mb-1 text-secondary small">{{ $sec['description'] }}</p>
-                  <span class="badge badge-light border">{{ $sec['badge'] }}</span>
-                </td>
                 <td class="text-center">
                   <span id="badge_{{ $sec['key'] }}" class="badge {{ $isEnabled ? 'badge-success' : 'badge-danger' }} px-3 py-2 font-weight-bold">
                     {{ $isEnabled ? '🟢 দৃশ্যমান (Active)' : '🔴 লুকানো (Hidden)' }}
@@ -137,6 +147,71 @@
                     <option value="0" {{ !$isEnabled ? 'selected' : '' }}>🚫 লুকিয়ে রাখুন (Hide Section)</option>
                   </select>
                 </td>
+
+                <!-- Background Color Column -->
+                <td class="text-center align-middle">
+                  @if($hasColors)
+                    <div class="d-inline-flex align-items-center" style="gap: 5px;">
+                      <input type="color" 
+                             id="{{ $sec['bg_key'] }}_picker" 
+                             value="{{ $bgVal }}" 
+                             class="form-control form-control-sm p-0 border shadow-sm" 
+                             style="width: 32px; height: 30px; cursor: pointer; border-radius: 6px;"
+                             onchange="document.getElementById('{{ $sec['bg_key'] }}').value = this.value">
+                      <input type="text" 
+                             name="{{ $sec['bg_key'] }}" 
+                             id="{{ $sec['bg_key'] }}" 
+                             value="{{ $bgVal }}" 
+                             class="form-control form-control-sm text-center font-weight-bold" 
+                             style="width: 82px;" 
+                             placeholder="#hex"
+                             oninput="if(this.value.match(/^#[0-9A-Fa-f]{6}$/)) document.getElementById('{{ $sec['bg_key'] }}_picker').value = this.value">
+                      <button type="button" 
+                              class="btn btn-xs btn-outline-secondary" 
+                              title="রিসেট ডিফল্ট কালার ({{ $sec['default_bg'] }})"
+                              onclick="document.getElementById('{{ $sec['bg_key'] }}').value = '{{ $sec['default_bg'] }}'; document.getElementById('{{ $sec['bg_key'] }}_picker').value = '{{ $sec['default_bg'] }}';">
+                        <i class="fas fa-undo"></i>
+                      </button>
+                    </div>
+                  @else
+                    <span class="badge badge-light border text-muted px-2 py-1">
+                      <i class="fas fa-lock mr-1"></i> হিরো ফিক্সড
+                    </span>
+                  @endif
+                </td>
+
+                <!-- Font Color Column -->
+                <td class="text-center align-middle">
+                  @if($hasColors)
+                    <div class="d-inline-flex align-items-center" style="gap: 5px;">
+                      <input type="color" 
+                             id="{{ $sec['color_key'] }}_picker" 
+                             value="{{ $colorVal }}" 
+                             class="form-control form-control-sm p-0 border shadow-sm" 
+                             style="width: 32px; height: 30px; cursor: pointer; border-radius: 6px;"
+                             onchange="document.getElementById('{{ $sec['color_key'] }}').value = this.value">
+                      <input type="text" 
+                             name="{{ $sec['color_key'] }}" 
+                             id="{{ $sec['color_key'] }}" 
+                             value="{{ $colorVal }}" 
+                             class="form-control form-control-sm text-center font-weight-bold" 
+                             style="width: 82px;" 
+                             placeholder="#hex"
+                             oninput="if(this.value.match(/^#[0-9A-Fa-f]{6}$/)) document.getElementById('{{ $sec['color_key'] }}_picker').value = this.value">
+                      <button type="button" 
+                              class="btn btn-xs btn-outline-secondary" 
+                              title="রিসেট ডিফল্ট কালার ({{ $sec['default_color'] }})"
+                              onclick="document.getElementById('{{ $sec['color_key'] }}').value = '{{ $sec['default_color'] }}'; document.getElementById('{{ $sec['color_key'] }}_picker').value = '{{ $sec['default_color'] }}';">
+                        <i class="fas fa-undo"></i>
+                      </button>
+                    </div>
+                  @else
+                    <span class="badge badge-light border text-muted px-2 py-1">
+                      <i class="fas fa-lock mr-1"></i> হিরো ফিক্সড
+                    </span>
+                  @endif
+                </td>
+
                 <td class="text-center">
                   <a href="{{ $sec['edit_url'] }}" class="btn btn-xs btn-outline-info font-weight-bold" title="কনটেন্ট সম্পাদনা করুন">
                     <i class="fas fa-pen mr-1"></i> {{ $sec['edit_label'] }}

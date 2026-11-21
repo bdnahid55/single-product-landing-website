@@ -46,6 +46,97 @@
 @endif
 @endpush
 
+@push('styles')
+<style id="dynamic-section-styles">
+  @php
+    $dynamicStyles = [
+      'problem' => [
+        'selector' => '#problemSolution',
+        'bg'       => $settings['section_problem_bg'] ?? null,
+        'color'    => $settings['section_problem_color'] ?? null,
+      ],
+      'why_us' => [
+        'selector' => '#whyUs',
+        'bg'       => $settings['section_why_us_bg'] ?? null,
+        'color'    => $settings['section_why_us_color'] ?? null,
+      ],
+      'gallery' => [
+        'selector' => '#gallery',
+        'bg'       => $settings['section_gallery_bg'] ?? null,
+        'color'    => $settings['section_gallery_color'] ?? null,
+      ],
+      'products' => [
+        'selector' => '#featuredProduct',
+        'bg'       => $settings['section_products_bg'] ?? null,
+        'color'    => $settings['section_products_color'] ?? null,
+      ],
+      'benefits' => [
+        'selector' => '#benefits',
+        'bg'       => $settings['section_benefits_bg'] ?? null,
+        'color'    => $settings['section_benefits_color'] ?? null,
+      ],
+      'video' => [
+        'selector' => '#video',
+        'bg'       => $settings['section_video_bg'] ?? null,
+        'color'    => $settings['section_video_color'] ?? null,
+      ],
+      'reviews' => [
+        'selector' => '#reviews',
+        'bg'       => $settings['section_reviews_bg'] ?? null,
+        'color'    => $settings['section_reviews_color'] ?? null,
+      ],
+      'discount' => [
+        'selector' => '#discount',
+        'bg'       => $settings['section_discount_bg'] ?? null,
+        'color'    => $settings['section_discount_color'] ?? null,
+      ],
+      'order_form' => [
+        'selector' => '#orderForm',
+        'bg'       => $settings['section_order_form_bg'] ?? null,
+        'color'    => $settings['section_order_form_color'] ?? null,
+      ],
+      'footer' => [
+        'selector' => '#footer',
+        'bg'       => $settings['section_footer_bg'] ?? null,
+        'color'    => $settings['section_footer_color'] ?? null,
+      ],
+    ];
+  @endphp
+
+  @foreach($dynamicStyles as $sKey => $sVal)
+    @if(!empty($sVal['bg']))
+      {{ $sVal['selector'] }} {
+        background-color: {{ $sVal['bg'] }} !important;
+      }
+    @endif
+    @if(!empty($sVal['color']))
+      {{ $sVal['selector'] }},
+      {{ $sVal['selector'] }} .section-title,
+      {{ $sVal['selector'] }} .section-subtitle {
+        color: {{ $sVal['color'] }} !important;
+      }
+      @if($sKey === 'footer')
+        {{ $sVal['selector'] }} .footer-brand,
+        {{ $sVal['selector'] }} .footer-about-text,
+        {{ $sVal['selector'] }} .footer-col-title,
+        {{ $sVal['selector'] }} .footer-links-list a,
+        {{ $sVal['selector'] }} .footer-contact-list a,
+        {{ $sVal['selector'] }} .footer-contact-icon,
+        {{ $sVal['selector'] }} .footer-copyright {
+          color: {{ $sVal['color'] }} !important;
+        }
+      @endif
+      @if($sKey === 'benefits')
+        {{ $sVal['selector'] }} .benefit-card-title,
+        {{ $sVal['selector'] }} .benefit-card-desc {
+          color: {{ $sVal['color'] }} !important;
+        }
+      @endif
+    @endif
+  @endforeach
+</style>
+@endpush
+
 @section('content')
 
   @php
@@ -529,7 +620,7 @@
          8. Customer Testimonials / Reviews Section
          ========================================================================== -->
     @if(($settings['section_reviews_show'] ?? '1') == '1')
-    <section id="reviews" class="py-5" style="background-color: #f8fafc;" aria-label="গ্রাহকদের মতামত">
+    <section id="reviews" class="py-5 reviews-section" aria-label="গ্রাহকদের মতামত">
       <div class="container py-3">
         <div class="section-header text-center mb-5">
           <h2 class="section-title">সম্মানিত গ্রাহকদের <span class="text-primary-green">মতামত</span></h2>
