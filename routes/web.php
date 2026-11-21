@@ -12,6 +12,7 @@ use App\Http\Controllers\Admin\ReviewController;
 use App\Http\Controllers\Admin\SectionController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\RoleController;
+use App\Http\Controllers\Admin\BackupController;
 
 /*
 |--------------------------------------------------------------------------
@@ -129,5 +130,13 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     // Roles & Permissions Management
     Route::middleware('can:manage-roles')->group(function () {
         Route::resource('roles', RoleController::class)->except(['show']);
+    });
+
+    // Automated Backups Management
+    Route::middleware('can:manage-settings')->group(function () {
+        Route::get('/backups', [BackupController::class, 'index'])->name('backups.index');
+        Route::post('/backups', [BackupController::class, 'store'])->name('backups.store');
+        Route::get('/backups/{fileName}/download', [BackupController::class, 'download'])->name('backups.download');
+        Route::delete('/backups/{fileName}', [BackupController::class, 'destroy'])->name('backups.destroy');
     });
 });

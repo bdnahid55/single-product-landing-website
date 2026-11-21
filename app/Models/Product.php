@@ -43,6 +43,31 @@ class Product extends Model
                 $product->slug = Str::slug($product->name) . '-' . rand(100, 999);
             }
         });
+
+        static::deleting(function ($product) {
+            $product->deleteImageFile();
+        });
+    }
+
+    /**
+     * Delete the associated uploaded image file from disk (guarding default assets).
+     */
+    public function deleteImageFile(): void
+    {
+        if (!empty($this->image)) {
+            // Never delete default template or seed assets
+            if (str_starts_with($this->image, 'assets/')) {
+                return;
+            }
+
+            $relativePath = str_starts_with($this->image, 'storage/')
+                ? substr($this->image, strlen('storage/'))
+                : $this->image;
+
+            if (\Illuminate\Support\Facades\Storage::disk('public')->exists($relativePath)) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($relativePath);
+            }
+        }
     }
 
     public function orderItems()

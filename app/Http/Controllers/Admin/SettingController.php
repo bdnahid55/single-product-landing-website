@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Setting;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class SettingController extends Controller
 {
@@ -52,12 +53,22 @@ class SettingController extends Controller
 
         foreach ($fileInputs as $fileKey => $settingKey) {
             if ($request->hasFile($fileKey)) {
+                $oldPath = Setting::get($settingKey);
+
                 $path = $request->file($fileKey)->store('uploads', 'public');
                 Setting::set($settingKey, 'storage/' . $path, 'content');
 
                 if ($fileKey === 'site_favicon_file') {
                     @copy(storage_path('app/public/' . $path), public_path('favicon.ico'));
                     @copy(storage_path('app/public/' . $path), public_path('assets/images/favicon.png'));
+                }
+
+                // Delete previous uploaded file from disk (guarding default assets)
+                if ($oldPath && str_starts_with($oldPath, 'storage/')) {
+                    $relativeDiskPath = substr($oldPath, strlen('storage/'));
+                    if (Storage::disk('public')->exists($relativeDiskPath)) {
+                        Storage::disk('public')->delete($relativeDiskPath);
+                    }
                 }
             }
         }

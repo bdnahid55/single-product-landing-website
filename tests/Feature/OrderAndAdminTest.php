@@ -1064,4 +1064,112 @@ class OrderAndAdminTest extends TestCase
         $otpPage->assertStatus(200);
         $otpPage->assertSee('সুন্দরবনের প্রাকৃতিক মধু');
     }
+
+    public function test_super_admin_can_view_backups_list(): void
+    {
+        $response = $this->actingAs($this->admin)->get('/admin/backups');
+        $response->assertStatus(200);
+        $response->assertSee('ডাটাবেজ ও মিডিয়া ব্যাকআপ ফাইল তালিকা');
+        $response->assertSee('ফুল ব্যাকআপ নিন');
+    }
+
+    public function test_can_download_and_delete_backup_archive(): void
+    {
+        $testDir = storage_path('app/backups/Modhu');
+        if (!\Illuminate\Support\Facades\File::exists($testDir)) {
+            \Illuminate\Support\Facades\File::makeDirectory($testDir, 0755, true);
+        }
+
+        $dummyFile = $testDir . '/test-backup-sample.zip';
+        file_put_contents($dummyFile, 'dummy zip content');
+
+        // Test download
+        $downloadResp = $this->actingAs($this->admin)->get('/admin/backups/test-backup-sample.zip/download');
+        $downloadResp->assertStatus(200);
+        $downloadResp->assertHeader('Content-Type', 'application/zip');
+
+        // Test delete
+        $deleteResp = $this->actingAs($this->admin)->delete('/admin/backups/test-backup-sample.zip');
+        $deleteResp->assertRedirect('/admin/backups');
+        $this->assertFalse(file_exists($dummyFile));
+    }
+
+    public function test_can_trigger_manual_full_and_db_backups(): void
+    {
+        $dbResp = $this->actingAs($this->admin)->post('/admin/backups', ['type' => 'db']);
+        $dbResp->assertRedirect('/admin/backups');
+        $dbResp->assertSessionHas('success');
+
+        $fullResp = $this->actingAs($this->admin)->post('/admin/backups', ['type' => 'full']);
+        $fullResp->assertRedirect('/admin/backups');
+        $fullResp->assertSessionHas('success');
+    }
+
+    public function test_product_image_is_deleted_when_product_is_deleted(): void
+    {
+        \Illuminate\Support\Facades\Storage::fake('public');
+
+        $uploadedImage = \Illuminate\Http\UploadedFile::fake()->image('test-honey.jpg');
+        $storedPath = $uploadedImage->store('products', 'public');
+
+        \Illuminate\Support\Facades\Storage::disk('public')->assertExists($storedPath);
+
+        $product = Product::create([
+            'name'          => 'টেস্ট মধু',
+            'slug'          => 'test-modhu-file-del',
+            'weight'        => '১ কেজি',
+            'regular_price' => 1200.00,
+            'sale_price'    => 1050.00,
+            'stock'         => 10,
+            'image'         => $storedPath,
+            'is_active'     => true,
+        ]);
+
+        // Delete product
+        $deleteResp = $this->actingAs($this->admin)->delete("/admin/products/{$product->id}");
+        $deleteResp->assertRedirect('/admin/products');
+
+        // Verify product record is gone and file is deleted from disk
+        $this->assertNull(Product::find($product->id));
+        \Illuminate\Support\Facades\Storage::disk('public')->assertMissing($storedPath);
+    }
+
+    public function test_old_product_image_is_deleted_when_product_is_updated_with_new_image(): void
+    {
+        \Illuminate\Support\Facades\Storage::fake('public');
+
+        $oldImage = \Illuminate\Http\UploadedFile::fake()->image('old-honey.jpg');
+        $oldPath = $oldImage->store('products', 'public');
+
+        $product = Product::create([
+            'name'          => 'টেস্ট মধু আপডেট',
+            'slug'          => 'test-modhu-file-upd',
+            'weight'        => '১ কেজি',
+            'regular_price' => 1200.00,
+            'sale_price'    => 1050.00,
+            'stock'         => 10,
+            'image'         => $oldPath,
+            'is_active'     => true,
+        ]);
+
+        \Illuminate\Support\Facades\Storage::disk('public')->assertExists($oldPath);
+
+        $newImage = \Illuminate\Http\UploadedFile::fake()->image('new-honey.jpg');
+
+        $updateResp = $this->actingAs($this->admin)->put("/admin/products/{$product->id}", [
+            'name'          => 'টেস্ট মধু আপডেট ২',
+            'regular_price' => 1200.00,
+            'sale_price'    => 1050.00,
+            'stock'         => 15,
+            'image'         => $newImage,
+        ]);
+        $updateResp->assertRedirect('/admin/products');
+
+        $product->refresh();
+        $this->assertNotEquals($oldPath, $product->image);
+
+        // Old file is deleted from disk, new file exists
+        \Illuminate\Support\Facades\Storage::disk('public')->assertMissing($oldPath);
+        \Illuminate\Support\Facades\Storage::disk('public')->assertExists($product->image);
+    }
 }

@@ -95,7 +95,7 @@
         </li>
         @endcan
 
-        @if(auth()->user()->can('manage-admins') || auth()->user()->can('manage-roles'))
+        @if(auth()->user()->can('manage-admins') || auth()->user()->can('manage-roles') || auth()->user()->can('manage-settings'))
         <li class="nav-header">SYSTEM</li>
         @endif
 
@@ -115,6 +115,16 @@
           <a href="{{ route('admin.roles.index') }}" class="nav-link {{ request()->routeIs('admin.roles.*') ? 'active' : '' }}">
             <i class="nav-icon fas fa-user-tag text-primary"></i>
             <p>Roles & Permissions</p>
+          </a>
+        </li>
+        @endcan
+
+        <!-- Database & Media Backups -->
+        @can('manage-settings')
+        <li class="nav-item">
+          <a href="{{ route('admin.backups.index') }}" class="nav-link {{ request()->routeIs('admin.backups.*') ? 'active' : '' }}">
+            <i class="nav-icon fas fa-archive text-warning"></i>
+            <p>Database & Backups</p>
           </a>
         </li>
         @endcan
