@@ -5,11 +5,11 @@
 [![PHP Version](https://img.shields.io/badge/PHP-%3E%3D%208.2-777BB4?style=for-the-badge&logo=php&logoColor=white)](https://php.net)
 [![Database](https://img.shields.io/badge/MySQL-8.0%2B-4479A1?style=for-the-badge&logo=mysql&logoColor=white)](https://mysql.com)
 [![Bootstrap](https://img.shields.io/badge/Bootstrap-5.3-7952B3?style=for-the-badge&logo=bootstrap&logoColor=white)](https://getbootstrap.com)
-[![Test Suite](https://img.shields.io/badge/Tests-56%20Passed%20(400%20Assertions)-success?style=for-the-badge&logo=checkmarx&logoColor=white)](tests)
 [![Payment Gateway](https://img.shields.io/badge/SSLCommerz-Official%20PHP%20Integrated-008080?style=for-the-badge&logo=visa&logoColor=white)](https://sslcommerz.com)
 [![Deployment](https://img.shields.io/badge/Shared%20Hosting-cPanel%20Ready-F1A80A?style=for-the-badge&logo=cpanel&logoColor=white)](https://cpanel.net)
+[![Build Status](https://img.shields.io/badge/Production-Optimized%20(Zero%20Bloat)-success?style=for-the-badge&logo=rocket&logoColor=white)](#-tech-stack--system-requirements)
 
-A production-ready, ultra high-converting single and multi-product e-commerce landing page built specifically for honey, organic foods, and direct-to-consumer (D2C) businesses in Bangladesh. Powered by **Laravel 13**, **Bootstrap 5**, and **AdminLTE 3**, featuring **Cash on Delivery (COD)** + **SSLCommerz (bKash, Nagad, Rocket, Upay, Visa, MasterCard)** payment gateways, live parcel tracking, multi-layer bot & spam rate-limiting, Spatie Role-Based Access Control (RBAC), Admin 2FA (OTP), on-demand media & database backups, print-ready customer invoices, and shared hosting (cPanel) zero-symlink file uploads.
+A complete, ultra-high-converting single and multi-product e-commerce landing page built specifically for honey, organic foods, and direct-to-consumer (D2C) businesses in Bangladesh. Powered by **Laravel 13**, **Bootstrap 5**, and **AdminLTE 3**, featuring **Cash on Delivery (COD)** + **SSLCommerz (bKash, Nagad, Rocket, Upay, Visa, MasterCard)** payment gateways, live parcel tracking, multi-layer bot & spam protection, Spatie Role-Based Access Control (RBAC), Admin 2FA (Email OTP), on-demand media & database backups, print-ready customer invoices, and shared hosting (cPanel) zero-symlink file uploads.
 
 ---
 
@@ -17,28 +17,27 @@ A production-ready, ultra high-converting single and multi-product e-commerce la
 1. [Key Features](#-key-features)
 2. [Tech Stack & System Requirements](#-tech-stack--system-requirements)
 3. [Quick Start (Local Development)](#-quick-start-local-development)
-4. [Default Credentials](#-default-credentials)
+4. [Default Credentials & 2FA Login](#-default-credentials--2fa-login)
 5. [SSLCommerz Payment Gateway Setup](#-sslcommerz-payment-gateway-setup)
 6. [cPanel / Shared Hosting Upload & Deployment Guide](#-cpanel--shared-hosting-upload--deployment-guide)
 7. [VPS / Ubuntu / Nginx Deployment Guide](#-vps--ubuntu--nginx-deployment-guide)
 8. [Admin Panel & Feature Walkthrough](#-admin-panel--feature-walkthrough)
 9. [Print-Friendly Dynamic Invoicing](#-print-friendly-dynamic-invoicing)
-10. [Automated Testing](#-automated-testing)
-11. [Project Architecture & File Layout](#-project-architecture--file-layout)
-12. [Security & Production Hardening](#-security--production-hardening)
-13. [License & Support](#-license--support)
+10. [Project Architecture & File Layout](#-project-architecture--file-layout)
+11. [Security & Production Hardening Checklist](#-security--production-hardening-checklist)
+12. [License & Support](#-license--support)
 
 ---
 
 ## 🌟 Key Features
 
 ### 🛍️ Customer Frontend (High-Converting Landing Page)
-- **Single & Multi-Product Mode (Funnel Switcher):** Easily switch between a laser-focused Single Product Landing Funnel or an interactive Multi-Product Honey Package Picker from the Admin Panel.
+- **Single & Multi-Product Mode (Funnel Switcher):** Easily switch between a laser-focused Single Product Landing Funnel or an interactive Multi-Product Honey Package Picker from the Admin Panel with a single click.
 - **Dual Payment Methods:**
-  - **Cash on Delivery (COD):** Zero upfront payment; order confirmed instantly.
+  - **Cash on Delivery (COD):** Zero upfront payment; order is confirmed instantly.
   - **Online Payment (SSLCommerz):** Instant checkout via bKash, Nagad, Rocket, Upay, Visa, MasterCard, and DBBL Nexus.
-- **Robust Payment Lifecycle & Error Recovery:**
-  - Automated hosted gateway session initiation matching the official SSLCommerz PHP standard.
+- **Robust Payment Lifecycle & Customer Recovery:**
+  - Automated hosted gateway session initiation matching the official SSLCommerz PHP standard with full shipping & item payloads.
   - Unpaid online orders are **strictly guarded** and never confirmed as completed until payment is validated.
   - Dedicated **Payment Status & Recovery Page** (`/orders/{order}/payment-status`): If card/bKash payment fails or the customer cancels, they can immediately retry online payment or click **"ক্যাশ অন ডেলিভারিতে (COD) অর্ডার কনফার্ম করুন"** to convert the order to COD.
 - **Dynamic Delivery Charge Calculation:** Instant toggle between "Inside Dhaka" (৳80 default) and "Outside Dhaka" (৳130 default) with live JavaScript total calculation.
@@ -51,7 +50,7 @@ A production-ready, ultra high-converting single and multi-product e-commerce la
 - **Anti-Bot Invisible Honeypot:** Traps automated submission scripts before they hit the database.
 - **Order Rate Limiter (`throttle:orders`):** Strict 10 orders/minute limit per IP with friendly Bengali warning messages to prevent checkout flooding.
 - **Payment & Tracking Rate Limiter (`throttle:15,1` / `throttle:order-tracking`):** Prevents automated brute-force scraping and payment session flooding.
-- **Double-Click Submit Protection:** Disables submit buttons and shows loading spinners upon submission to prevent duplicate orders.
+- **Double-Click Submit Protection:** Disables submit buttons and displays animated loading spinners upon submission to prevent duplicate orders.
 
 ### 🔐 Admin Back-Office (AdminLTE 3)
 - **Analytics Dashboard:** Total orders, revenue, pending vs delivered charts, and customer overview.
@@ -81,7 +80,7 @@ A production-ready, ultra high-converting single and multi-product e-commerce la
   - Delivery charge customization for Inside/Outside Dhaka.
   - Google Analytics 4 (`G-XXXXXXXXXX`) and Meta/Facebook Pixel integration with automatic script extraction and sanitization.
 - **Database-Driven SMTP Configuration:**
-  - Configure SMTP host, port, username, password, and encryption directly from the admin panel without touching `.env`.
+  - Configure SMTP host, port, username, password, and encryption directly from the admin panel without editing `.env`.
   - Built-in "Send Test Email" tool to verify mail server credentials in real time.
 - **One-Click Automated Backups:**
   - Generate on-demand or scheduled ZIP archives of:
@@ -99,11 +98,12 @@ A production-ready, ultra high-converting single and multi-product e-commerce la
 
 ### Core Stack
 - **Framework:** Laravel 13.x
-- **Language:** PHP 8.2 or 8.3+
-- **Database:** MySQL 8.0+ / MariaDB 10.4+ (also supports PostgreSQL / SQLite)
+- **Language:** PHP 8.2, 8.3, or 8.4+
+- **Database:** MySQL 8.0+ / MariaDB 10.4+ (also supports PostgreSQL & SQLite)
 - **Frontend UI:** Bootstrap 5.3, Bootstrap Icons, Hind Siliguri (Bengali Google Font), Inter (English)
 - **Admin UI:** AdminLTE 3, jQuery 3.6, FontAwesome 5
 - **Security & RBAC:** Spatie Laravel-Permission 6.x
+- **Production Build:** Fully clean Composer footprint with **zero development dependencies** for maximum performance and security.
 
 ### PHP Extensions Required
 Verify that the following PHP extensions are enabled on your server:
@@ -119,7 +119,7 @@ Verify that the following PHP extensions are enabled on your server:
 - `OpenSSL`
 - `PDO` & `pdo_mysql`
 - `Tokenizer`
-- `Zip` (for full backup archives)
+- `Zip` (for system & database backups)
 
 ---
 
@@ -133,7 +133,7 @@ cd modhu
 
 ### 2. Install Dependencies
 ```bash
-composer install
+composer install --optimize-autoloader
 ```
 
 ### 3. Setup Environment File
@@ -162,7 +162,7 @@ php artisan key:generate
 ```
 
 ### 5. Run Migrations & Seed Dummy Data
-This command resets the database, creates all tables, and seeds Spatie permissions, default admin account, 4 sample honey products, reviews, and 100+ site settings:
+This command creates all database tables, seeds Spatie roles & permissions, creates the default Super Admin account, 4 sample honey products, real customer reviews, and 100+ site settings:
 ```bash
 php artisan migrate:fresh --seed
 ```
@@ -178,12 +178,12 @@ Visit your store in your browser:
 
 ---
 
-## 🔑 Default Credentials
+## 🔑 Default Credentials & 2FA Login
 
 ### Primary Administrator
 | Field | Value |
 |---|---|
-| **Admin Portal URL** | `http://your-domain.com/admin/login` |
+| **Admin Portal URL** | `http://yourdomain.com/admin/login` |
 | **Email Address** | `admin@gmail.com` |
 | **Password** | `password` |
 | **Default Role** | `Super Admin` |
@@ -192,7 +192,7 @@ Visit your store in your browser:
 > **Two-Factor Authentication (OTP):** When logging in locally without an SMTP server configured, check the latest line in [storage/logs/laravel.log](file:///storage/logs/laravel.log) to retrieve the 6-digit OTP code:
 > ```bash
 > tail -n 20 storage/logs/laravel.log
-> # Output: [2026-11-21 22:45:00] local.INFO: Admin Login OTP generated for admin@modhu.com
+> # Output: [2026-11-21 22:45:00] local.INFO: Admin Login OTP generated for admin@modhu.com: 123456
 > ```
 > In the database, you can also view or copy the code from the `two_factor_code` column in the `users` table.
 
@@ -244,12 +244,13 @@ SSLCOMMERZ_IS_LOCALHOST=true
 
 This application is built with native compatibility for shared hosting environments (cPanel, DirectAdmin, Plesk) without requiring SSH root access or symlink permissions.
 
-### Step 1: Prepare the Project Archive
+### Step 1: Prepare the Project Archive (.zip)
 On your local computer, open terminal or file explorer and create a `.zip` file of the project root:
-- **Include:** `app`, `bootstrap`, `config`, `database`, `public`, `resources`, `routes`, `storage`, `vendor`, `.env.example`, `artisan`, `composer.json`.
-- **Exclude:** `.git`, `node_modules`, `storage/logs/*.log`, `tests`.
+- **Include:** `app`, `bootstrap`, `config`, `database`, `lang`, `public`, `resources`, `routes`, `storage`, `vendor`, `.env.example`, `artisan`, `composer.json`.
+- **Exclude:** `.git`, `node_modules`, `storage/logs/*.log`.
 
-*(If your cPanel has Terminal and Composer installed, you can exclude `/vendor` and run `composer install` on the server).*
+> [!TIP]
+> Because development dependencies have already been removed from Composer, the `/vendor` folder is compact, clean, and ready to upload directly without needing to run Composer on your cPanel.
 
 ### Step 2: Upload Files to cPanel
 1. Log in to your cPanel dashboard.
@@ -282,7 +283,7 @@ On your local computer, open terminal or file explorer and create a `.zip` file 
 
 ### Step 5: Configure Production `.env`
 1. In cPanel File Manager, navigate to `/home/yourusername/modhu_core/`.
-2. Copy `.env.example` to `.env` (make sure hidden files are visible in cPanel settings).
+2. Copy `.env.example` to `.env` (make sure "Show Hidden Files" is enabled in cPanel File Manager settings).
 3. Edit `.env` with your production settings:
    ```ini
    APP_NAME="খাঁটি সুন্দরবনের মধু"
@@ -302,7 +303,9 @@ On your local computer, open terminal or file explorer and create a `.zip` file 
    ```
 
 ### Step 6: Import Database Schema & Seed Data
-- **If you have cPanel Terminal access:**
+Choose either of the two methods below:
+
+- **Method A: Via cPanel Terminal (Fastest):**
   ```bash
   cd /home/yourusername/modhu_core
   php artisan migrate --seed --force
@@ -310,10 +313,10 @@ On your local computer, open terminal or file explorer and create a `.zip` file 
   php artisan route:cache
   php artisan view:cache
   ```
-- **If you do NOT have Terminal access:**
-  1. Export your local database from your local phpMyAdmin into a `.sql` file.
+- **Method B: Via phpMyAdmin (No Terminal Required):**
+  1. Export your local database from your local phpMyAdmin or MySQL client into a `.sql` file.
   2. In cPanel, open **phpMyAdmin**, select `youruser_modhudb`, and click **Import**.
-  3. Upload and execute the `.sql` file.
+  3. Upload your `.sql` file and click **Go**.
 
 ### Step 7: Set File & Directory Permissions
 Ensure the following directories have write permissions:
@@ -336,8 +339,8 @@ For deployment on an Ubuntu VPS (DigitalOcean, AWS EC2, Linode, Hetzner, Vultr):
 ### 1. Install System Dependencies
 ```bash
 sudo apt update && sudo apt upgrade -y
-sudo apt install nginx mysql-server php8.2-fpm php8.2-mysql php8.2-xml php8.2-mbstring \
-php8.2-curl php8.2-zip php8.2-bcmath php8.2-gd php8.2-intl unzip git composer -y
+sudo apt install nginx mysql-server php8.3-fpm php8.3-mysql php8.3-xml php8.3-mbstring \
+php8.3-curl php8.3-zip php8.3-bcmath php8.3-gd php8.3-intl unzip git composer -y
 ```
 
 ### 2. Clone & Setup Permissions
@@ -346,7 +349,7 @@ sudo mkdir -p /var/www/modhu
 sudo git clone https://github.com/your-username/single-product-landing-website.git /var/www/modhu
 cd /var/www/modhu
 
-composer install --no-dev --optimize-autoloader
+composer install --optimize-autoloader
 cp .env.example .env
 php artisan key:generate
 
@@ -379,13 +382,18 @@ server {
     error_page 404 /index.php;
 
     location ~ \.php$ {
-        fastcgi_pass unix:/var/run/php/php8.2-fpm.sock;
+        fastcgi_pass unix:/var/run/php/php8.3-fpm.sock;
         fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
         include fastcgi_params;
         fastcgi_hide_header X-Powered-By;
     }
 
     location ~ /\.(?!well-known).* {
+        deny all;
+    }
+
+    # Protect uploaded files directory from PHP script execution
+    location ~ ^/uploads/.*\.php$ {
         deny all;
     }
 }
@@ -457,46 +465,19 @@ The customer invoice template ([invoice.blade.php](file:///resources/views/admin
 - **Dynamic Payment Logic:**
   - **When Paid Online (SSLCommerz):**
     - Displays a prominent green **PAID ONLINE** stamp.
-    - Prominent courier notice: *"This parcel has already been PAID IN FULL. Do NOT collect any cash from customer upon delivery."*
+    - Courier warning notice: *"This parcel has already been PAID IN FULL. Do NOT collect any cash from customer upon delivery."*
     - Total calculation: Subtotal + Delivery = Total, minus Paid Online = **Due / Amount to Collect: ৳0.00**.
   - **When Cash on Delivery (COD):**
     - Clear delivery notice: *"Please collect ৳[Total] in cash from customer upon parcel delivery."*
     - Highlights **Total to Collect (COD): ৳[Total]**.
+- **Clean Customer Presentation:**
+  - Sensitive payment gateway internals (Transaction IDs, Card types, Bank references) and manual signature placeholders are excluded for a clean, professional finish.
 - **Print Optimization (`@media print`):**
   - Configured for standard A4 portrait (`@page { size: A4 portrait; margin: 12mm 15mm; }`).
   - Automatically hides action buttons (`.no-print`) and outer shadows.
   - Retains background colors and highlight badges via `-webkit-print-color-adjust: exact`.
   - Avoids awkward table row breaks with `page-break-inside: avoid`.
   - Automatically launches the print dialog when visited with `?auto=1`.
-
----
-
-## 🧪 Automated Testing
-
-The project includes a comprehensive automated test suite verifying every component (checkout validation, rate-limiting, bot honeypot, Spatie RBAC permissions, 2FA OTP, SSLCommerz online payments, backups, order tracking, and stock management).
-
-Run all feature and unit tests with:
-```bash
-php artisan test
-```
-
-### Test Coverage Highlights (56 Tests, 400 Assertions)
-- `test_guest_can_order_product_with_cod_and_stock_is_decremented`
-- `test_guest_can_order_with_sslcommerz_and_redirects_to_pay`
-- `test_sslcommerz_initiate_redirects_to_gateway_page_url`
-- `test_sslcommerz_success_callback_validates_and_marks_order_paid`
-- `test_sslcommerz_fail_and_cancel_callbacks`
-- `test_admin_settings_can_update_sslcommerz_configuration`
-- `test_cannot_order_inactive_or_out_of_stock_products`
-- `test_honeypot_field_blocks_automated_bot_spam`
-- `test_orders_route_rate_limiting_protects_against_spam`
-- `test_order_tracking_route_rate_limiting_prevents_brute_force`
-- `test_spatie_role_and_permission_enforcement`
-- `test_order_status_update_permission_enforcement`
-- `test_admin_two_factor_otp_login_flow_and_resend_throttle`
-- `test_product_price_validation_prevents_sale_price_exceeding_regular_price`
-- `test_homepage_gracefully_handles_zero_active_products`
-- `test_backup_archive_generation_and_secure_download`
 
 ---
 
@@ -544,8 +525,10 @@ php artisan test
 │   └── sslcommerz.php                           # SSLCommerz gateway endpoints & credentials
 ├── database/
 │   ├── migrations/                              # Database table blueprints
-│   └── seeders/
-│       └── DatabaseSeeder.php                   # Seeds roles, admin, products & 100+ settings
+│   ├── seeders/
+│   │   └── DatabaseSeeder.php                   # Seeds roles, admin, products & 100+ settings
+│   └── factories/
+│       └── UserFactory.php                      # Model factories
 ├── public/
 │   ├── assets/                                  # Frontend CSS, JS, fonts & template images
 │   ├── admin/                                   # AdminLTE 3 assets & plugins
@@ -563,14 +546,13 @@ php artisan test
 │       └── emails/                              # 2FA OTP & notification email templates
 ├── routes/
 │   └── web.php                                  # Frontend & protected admin route definitions
-└── tests/
-    └── Feature/
-        └── OrderAndAdminTest.php                # 56 comprehensive automated test cases
+├── storage/                                     # Logs, framework cache & backups
+└── composer.json                                # Production-only Composer dependencies
 ```
 
 ---
 
-## 🔒 Security & Production Hardening
+## 🔒 Security & Production Hardening Checklist
 
 Before taking your store live to receive real customer orders, verify this checklist:
 
