@@ -94,6 +94,7 @@ class OrderAndAdminTest extends TestCase
         $this->assertEquals(2100.00, $order->subtotal);
         $this->assertEquals(2180.00, $order->total_amount);
         $this->assertEquals('pending', $order->order_status);
+        $this->assertStringStartsWith('ORD-', $order->order_number);
 
         // Check stock decremented: 50 - 2 = 48
         $this->assertEquals(48, $this->product->fresh()->stock);
@@ -197,6 +198,7 @@ class OrderAndAdminTest extends TestCase
         $response->assertSee('ORD-INV-99');
         $response->assertSee('আব্দুল কাদের');
         $response->assertSee('Print Invoice');
+        $response->assertDontSee('Order ID:');
     }
 
     public function test_admin_can_create_new_product(): void
@@ -480,5 +482,67 @@ class OrderAndAdminTest extends TestCase
         $this->assertDatabaseMissing('orders', [
             'customer_phone' => '01700000000',
         ]);
+    }
+
+    public function test_admin_can_toggle_packages_grid_visibility_in_multi_product_mode(): void
+    {
+        $prod2 = Product::create([
+            'name'          => 'সুন্দরবনের খলিসা মধু (৫০০ গ্রাম)',
+            'slug'          => 'khalisa-500g-grid-test',
+            'weight'        => '৫০০ গ্রাম',
+            'regular_price' => 650.00,
+            'sale_price'    => 550.00,
+            'stock'         => 20,
+            'is_active'     => true,
+            'is_featured'   => false,
+        ]);
+
+        // Default: Multi mode and grid enabled ('all')
+        $home1 = $this->get('/');
+        $home1->assertStatus(200);
+        $home1->assertSee('এই পণ্যটি কিনুন 🛒'); // Button inside the grid
+        $home1->assertSee($prod2->name);
+
+        // Turn OFF package grid ('none')
+        $updateResp = $this->actingAs($this->admin)->put('/admin/products-mode', [
+            'store_mode'         => 'multiple',
+            'show_packages_grid' => 'none',
+        ]);
+        $updateResp->assertRedirect();
+        $this->assertEquals('none', Setting::get('show_packages_grid'));
+
+        // Verify homepage DOES NOT show the grid
+        $home2 = $this->get('/');
+        $home2->assertStatus(200);
+        $home2->assertDontSee('এই পণ্যটি কিনুন 🛒'); // Grid button hidden
+        // But multi-product cart in checkout is still present
+        $home2->assertSee('multi-prod-checkbox', false);
+        $home2->assertSee($prod2->name);
+
+        // Turn ON package grid for selected products only
+        $updateResp2 = $this->actingAs($this->admin)->put('/admin/products-mode', [
+            'store_mode'         => 'multiple',
+            'show_packages_grid' => 'selected',
+            'grid_product_ids'   => [$this->product->id], // Only prod1
+        ]);
+        $updateResp2->assertRedirect();
+        $this->assertEquals('selected', Setting::get('show_packages_grid'));
+
+        $home3 = $this->get('/');
+        $home3->assertStatus(200);
+        $home3->assertSee('এই পণ্যটি কিনুন 🛒'); // Grid is shown
+        $home3->assertSee($this->product->name);
+
+        // Turn back to 'all'
+        $updateResp3 = $this->actingAs($this->admin)->put('/admin/products-mode', [
+            'store_mode'         => 'multiple',
+            'show_packages_grid' => 'all',
+        ]);
+        $updateResp3->assertRedirect();
+        $this->assertEquals('all', Setting::get('show_packages_grid'));
+
+        $home4 = $this->get('/');
+        $home4->assertStatus(200);
+        $home4->assertSee('এই পণ্যটি কিনুন 🛒');
     }
 }

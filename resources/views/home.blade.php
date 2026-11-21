@@ -377,9 +377,15 @@
         @endif
 
         <!-- All Available Honey Packages Grid (Shown in Multi-Product Mode) -->
-        @if(($storeMode ?? 'multiple') !== 'single' && $products->count() > 1)
+        @php
+          $displayGridProds = $gridProducts ?? $products;
+          $gridMode = $showPackagesGrid ?? ($settings['show_packages_grid'] ?? 'all');
+          if ($gridMode === '1') $gridMode = 'all';
+          if ($gridMode === '0') $gridMode = 'none';
+        @endphp
+        @if(($storeMode ?? 'multiple') !== 'single' && $gridMode !== 'none' && $displayGridProds->count() > 0)
         <div class="row g-4 mt-2">
-          @foreach($products as $product)
+          @foreach($displayGridProds as $product)
             <div class="col-lg-4 col-md-6">
               <article class="card h-100 border-0 shadow-sm rounded-4 p-3 text-center position-relative" style="background: #ffffff; border: 1px solid #f0fdf4 !important;">
                 @if($product->badge)

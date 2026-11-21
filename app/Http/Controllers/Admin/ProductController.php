@@ -20,17 +20,26 @@ class ProductController extends Controller
         $storeMode = Setting::get('store_mode', 'multiple');
         $singleProductId = Setting::get('single_product_id');
 
-        return view('admin.products.index', compact('products', 'allProducts', 'storeMode', 'singleProductId'));
+        $showPackagesGrid = Setting::get('show_packages_grid', 'all');
+        if ($showPackagesGrid === '1') $showPackagesGrid = 'all';
+        if ($showPackagesGrid === '0') $showPackagesGrid = 'none';
+
+        $selectedGridProductIds = json_decode(Setting::get('grid_product_ids', '[]'), true) ?: [];
+
+        return view('admin.products.index', compact('products', 'allProducts', 'storeMode', 'singleProductId', 'showPackagesGrid', 'selectedGridProductIds'));
     }
 
     /**
-     * Update website sales mode (single product vs multiple products).
+     * Update website sales mode (single product vs multiple products) and package grid visibility.
      */
     public function updateMode(Request $request)
     {
         $validated = $request->validate([
-            'store_mode'        => 'required|in:single,multiple',
-            'single_product_id' => 'nullable|exists:products,id',
+            'store_mode'          => 'required|in:single,multiple',
+            'single_product_id'   => 'nullable|exists:products,id',
+            'show_packages_grid'  => 'nullable|in:all,none,selected,0,1',
+            'grid_product_ids'    => 'nullable|array',
+            'grid_product_ids.*'  => 'exists:products,id',
         ]);
 
         Setting::set('store_mode', $validated['store_mode'], 'store_mode');
@@ -39,11 +48,19 @@ class ProductController extends Controller
             Setting::set('single_product_id', $validated['single_product_id'], 'store_mode');
         }
 
+        $showPackagesGrid = $validated['show_packages_grid'] ?? 'all';
+        if ($showPackagesGrid === '1') $showPackagesGrid = 'all';
+        if ($showPackagesGrid === '0') $showPackagesGrid = 'none';
+        Setting::set('show_packages_grid', $showPackagesGrid, 'store_mode');
+
+        $gridProductIds = $request->input('grid_product_ids', []);
+        Setting::set('grid_product_ids', json_encode(array_values(array_map('intval', (array)$gridProductIds))), 'store_mode');
+
         $modeLabel = $validated['store_mode'] === 'single'
             ? 'Single Product Funnel (একক পণ্য মোড)'
             : 'Multi-Product Store (একাধিক পণ্য / প্যাকেজ মোড)';
 
-        return back()->with('success', "ওয়েবসাইট বিক্রয় মোড সফলভাবে পরিবর্তন করা হয়েছে: {$modeLabel}!");
+        return back()->with('success', "ওয়েবসাইট বিক্রয় মোড ও প্যাকেজ গ্রিড সেটিংস সফলভাবে সংরক্ষণ করা হয়েছে: {$modeLabel}!");
     }
 
     /**

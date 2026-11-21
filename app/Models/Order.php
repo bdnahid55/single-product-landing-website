@@ -38,7 +38,7 @@ class Order extends Model
 
     public static function generateOrderNumber(): string
     {
-        $prefix = 'MODHU-';
+        $prefix = 'ORD-';
         $random = strtoupper(bin2hex(random_bytes(3))); // 6 hex chars
         $timestamp = date('ymd');
         return $prefix . $timestamp . '-' . $random;

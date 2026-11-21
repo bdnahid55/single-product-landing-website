@@ -65,6 +65,68 @@
               </button>
             </div>
           </div>
+
+          <!-- Multi-Product Mode: Homepage Packages Grid Display Controls -->
+          <div id="multiProductOptionsBox" class="mt-3 p-3 bg-white rounded border shadow-sm" style="{{ $storeMode === 'multiple' ? '' : 'display: none;' }}">
+            <div class="d-flex flex-wrap justify-content-between align-items-center mb-2">
+              <label class="font-weight-bold text-dark mb-0">
+                <i class="fas fa-th-large text-success mr-2"></i> হোমপেজে 'মধু প্যাকেজ গ্রিড' সেকশন প্রদর্শন অপশন:
+              </label>
+              <span class="badge badge-success px-2 py-1">Packages Grid Option</span>
+            </div>
+            <p class="text-muted small mb-3">
+              মাল্টি-প্রোডাক্ট মোড সক্রিয় থাকা অবস্থায় হোমপেজের <strong>"All Available Honey Packages Grid"</strong> সেকশনে সকল সক্রিয় পণ্য দেখাবেন কি না তা নির্ধারণ করুন:
+            </p>
+
+            <div class="d-flex flex-wrap align-items-center mb-2">
+              <div class="custom-control custom-radio mr-4 mb-2">
+                <input type="radio" id="grid_mode_all" name="show_packages_grid" value="all" class="custom-control-input" {{ ($showPackagesGrid ?? 'all') === 'all' ? 'checked' : '' }}>
+                <label class="custom-control-label font-weight-bold text-success" for="grid_mode_all">
+                  <i class="fas fa-check-circle mr-1"></i> হ্যাঁ, সকল সক্রিয় পণ্য প্যাকেজ গ্রিডে দেখান (Show All Active Products)
+                </label>
+              </div>
+
+              <div class="custom-control custom-radio mr-4 mb-2">
+                <input type="radio" id="grid_mode_none" name="show_packages_grid" value="none" class="custom-control-input" {{ ($showPackagesGrid ?? 'all') === 'none' ? 'checked' : '' }}>
+                <label class="custom-control-label font-weight-bold text-danger" for="grid_mode_none">
+                  <i class="fas fa-eye-slash mr-1"></i> না, প্যাকেজ গ্রিড সম্পূর্ণ লুকান (Hide Packages Grid from Homepage)
+                </label>
+              </div>
+
+              <div class="custom-control custom-radio mb-2">
+                <input type="radio" id="grid_mode_selected" name="show_packages_grid" value="selected" class="custom-control-input" {{ ($showPackagesGrid ?? 'all') === 'selected' ? 'checked' : '' }}>
+                <label class="custom-control-label font-weight-bold text-primary" for="grid_mode_selected">
+                  <i class="fas fa-filter mr-1"></i> নির্দিষ্ট কিছু পণ্য নির্বাচন করুন (Select Specific Products)
+                </label>
+              </div>
+            </div>
+
+            <!-- Specific Products Checklist (shown only if 'selected' chosen) -->
+            <div id="selectedGridProductsContainer" class="mt-2 pt-2 border-top" style="{{ ($showPackagesGrid ?? 'all') === 'selected' ? '' : 'display: none;' }}">
+              <small class="font-weight-bold text-dark d-block mb-2">
+                হোমপেজ প্যাকেজ গ্রিডে যে যে পণ্য দেখাতে চান টিক দিন:
+              </small>
+              <div class="row">
+                @foreach($allProducts as $p)
+                  <div class="col-md-4 col-sm-6 mb-2">
+                    <div class="custom-control custom-checkbox">
+                      <input type="checkbox" name="grid_product_ids[]" value="{{ $p->id }}" id="grid_prod_{{ $p->id }}" class="custom-control-input" {{ in_array($p->id, $selectedGridProductIds ?? []) ? 'checked' : '' }}>
+                      <label class="custom-control-label font-weight-bold text-dark" for="grid_prod_{{ $p->id }}">
+                        {{ $p->name }} <span class="text-success">(৳{{ number_format($p->sale_price, 0) }})</span>
+                        @if(!$p->is_active)
+                          <span class="badge badge-secondary ml-1">Inactive</span>
+                        @endif
+                      </label>
+                    </div>
+                  </div>
+                @endforeach
+              </div>
+            </div>
+
+            <small class="text-muted d-block mt-2">
+              <i class="fas fa-lightbulb text-warning mr-1"></i> <strong>টিপ:</strong> গ্রিড বন্ধ রাখলেও গ্রাহক সরাসরি অর্ডার ফর্মের মাল্টি-কার্ট সিলেকশন থেকে যেকোনো প্যাকেজ নির্বাচন করে একই সাথে অর্ডার করতে পারবেন।
+            </small>
+          </div>
         </form>
       </div>
     </div>
@@ -171,12 +233,23 @@
       "pageLength": 10
     });
 
-    // Toggle Single Product Selector Dropdown
+    // Toggle Selling Mode Sub-Options
     $('input[name="store_mode"]').on('change', function () {
       if ($(this).val() === 'single') {
         $('#singleProductSelectCol').slideDown();
+        $('#multiProductOptionsBox').slideUp();
       } else {
         $('#singleProductSelectCol').slideUp();
+        $('#multiProductOptionsBox').slideDown();
+      }
+    });
+
+    // Toggle specific products checklist when grid mode is 'selected'
+    $('input[name="show_packages_grid"]').on('change', function () {
+      if ($(this).val() === 'selected') {
+        $('#selectedGridProductsContainer').slideDown();
+      } else {
+        $('#selectedGridProductsContainer').slideUp();
       }
     });
   });

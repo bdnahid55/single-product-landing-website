@@ -66,7 +66,6 @@
       <div class="col-sm-4 invoice-col">
         <b>Invoice #{{ $order->order_number }}</b><br>
         <br>
-        <b>Order ID:</b> #{{ $order->id }}<br>
         <b>Order Date:</b> {{ $order->created_at->format('d M, Y h:i A') }}<br>
         <b>Payment:</b> {{ strtoupper($order->payment_method) }} ({{ ucfirst($order->payment_status) }})<br>
         <b>Status:</b> {{ ucfirst($order->order_status) }}

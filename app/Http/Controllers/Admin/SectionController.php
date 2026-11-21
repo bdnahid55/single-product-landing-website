@@ -58,11 +58,11 @@ class SectionController extends Controller
                 'key'         => 'section_products_show',
                 'title_bn'    => 'সেরা মধু প্যাকেজসমূহ (Products Section)',
                 'title_en'    => 'Featured Product & Packages Grid',
-                'description' => 'ফিচার্ড প্রোডাক্ট ব্যানার এবং সকল সক্রিয় মধু প্যাকেজের তালিকা ও সরাসরি ক্রয় বাটন।',
+                'description' => 'ফিচার্ড প্রোডাক্ট ব্যানার এবং সকল সক্রিয় মধু প্যাকেজের তালিকা। মাল্টি-প্রোডাক্ট মোডে গ্রিড অন/অফ করতে প্রোডাক্টস পেজ ব্যবহার করুন।',
                 'icon'        => 'fas fa-box text-warning',
                 'badge'       => 'পণ্যসমূহ',
                 'edit_url'    => route('admin.products.index'),
-                'edit_label'  => 'পণ্য তালিকা পরিচালনা',
+                'edit_label'  => 'পণ্য তালিকা ও গ্রিড মোড পরিচালনা',
             ],
             [
                 'key'         => 'section_benefits_show',
