@@ -123,18 +123,40 @@
                 </div>
               </div>
 
-              <div class="form-group">
-                <label for="og_image_file">Social Share Banner Image (OG Image)</label>
-                <div class="custom-file">
-                  <input type="file" name="og_image_file" class="custom-file-input" id="og_image_file" accept="image/*">
-                  <label class="custom-file-label" for="og_image_file">Choose social banner (1200x630 px)...</label>
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label for="og_image_file">Social Share Banner Image (OG Image)</label>
+                    <div class="custom-file">
+                      <input type="file" name="og_image_file" class="custom-file-input" id="og_image_file" accept="image/*">
+                      <label class="custom-file-label" for="og_image_file">Choose social banner (1200x630 px)...</label>
+                    </div>
+                    <div class="mt-2 d-flex align-items-center">
+                      <span class="text-muted small mr-2">Current Social Image:</span>
+                      @php
+                        $curOg = !empty($settings['og_image']) ? (str_starts_with($settings['og_image'], 'http') ? $settings['og_image'] : asset($settings['og_image'])) : asset('assets/images/hero-honey-jar.png');
+                      @endphp
+                      <img src="{{ $curOg }}" alt="Current OG" style="height: 45px; border: 1px solid #ddd; border-radius: 4px;">
+                    </div>
+                  </div>
                 </div>
-                <div class="mt-2 d-flex align-items-center">
-                  <span class="text-muted small mr-2">Current Social Image:</span>
-                  @php
-                    $curOg = !empty($settings['og_image']) ? (str_starts_with($settings['og_image'], 'http') ? $settings['og_image'] : asset($settings['og_image'])) : asset('assets/images/hero-honey-jar.png');
-                  @endphp
-                  <img src="{{ $curOg }}" alt="Current OG" style="height: 45px; border: 1px solid #ddd; border-radius: 4px;">
+
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label for="site_favicon_file">Website Favicon (ওয়েবসাইট ফ্যাভিকন আইকন)</label>
+                    <div class="custom-file">
+                      <input type="file" name="site_favicon_file" class="custom-file-input" id="site_favicon_file" accept=".ico,.png,.svg,.jpg,.webp">
+                      <label class="custom-file-label" for="site_favicon_file">Choose favicon (.png / .ico / .svg)...</label>
+                    </div>
+                    <div class="mt-2 d-flex align-items-center">
+                      <span class="text-muted small mr-2">Current Favicon:</span>
+                      @php
+                        $curFavicon = !empty($settings['site_favicon']) ? (str_starts_with($settings['site_favicon'], 'http') ? $settings['site_favicon'] : asset($settings['site_favicon'])) : asset('assets/images/favicon.png');
+                      @endphp
+                      <img src="{{ $curFavicon }}" alt="Current Favicon" style="height: 38px; width: 38px; object-fit: contain; border: 1px solid #ddd; border-radius: 6px; padding: 2px; background: #ffffff;">
+                      <small class="text-muted ml-2">ব্রাউজার ট্যাবে প্রদর্শিত হয় (32x32 বা 64x64 PNG/ICO)।</small>
+                    </div>
+                  </div>
                 </div>
               </div>
 

@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- Soft Circular Glow Background -->
+  <circle cx="32" cy="32" r="30" fill="#fef3c7" stroke="#f59e0b" stroke-width="2"/>
+  
+  <!-- Honey Jar Body -->
+  <path d="M19 24 C19 20 45 20 45 24 L48 48 C48 54 44 58 32 58 C20 58 16 54 16 48 Z" fill="#f59e0b" stroke="#d97706" stroke-width="2"/>
+  <path d="M22 28 C22 26 42 26 42 28 L44 48 C44 52 40 55 32 55 C24 55 20 52 20 48 Z" fill="#fbbf24"/>
+  
+  <!-- Honey Jar Neck & Lid -->
+  <rect x="22" y="16" width="20" height="7" rx="3" fill="#15803d" stroke="#166534" stroke-width="1.5"/>
+  <rect x="20" y="12" width="24" height="5" rx="2" fill="#16a34a"/>
+  
+  <!-- Jar Cloth Ribbon -->
+  <path d="M22 23 C26 25 38 25 42 23" stroke="#b45309" stroke-width="2" fill="none"/>
+  
+  <!-- Honey Dripping / Shine -->
+  <path d="M26 30 C26 36 29 38 29 34 C29 30 35 30 35 36 C35 41 38 41 38 35" stroke="#fef3c7" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+  
+  <!-- Little Bee Accent -->
+  <g transform="translate(38, 12) scale(0.65)">
+    <ellipse cx="12" cy="12" rx="7" ry="5" fill="#facc15" stroke="#1f2937" stroke-width="1.5"/>
+    <path d="M9 8 L9 16 M13 7 L13 17" stroke="#1f2937" stroke-width="1.5"/>
+    <ellipse cx="10" cy="5" rx="4" ry="2" fill="#e0f2fe" opacity="0.8" transform="rotate(-30 10 5)"/>
+  </g>
+</svg>

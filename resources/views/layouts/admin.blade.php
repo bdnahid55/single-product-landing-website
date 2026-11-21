@@ -7,6 +7,9 @@
   <meta name="csrf-token" content="{{ csrf_token() }}">
   <title>@yield('title', 'Admin Dashboard') | মধু Admin</title>
 
+  <!-- Favicon -->
+  @include('partials.favicon')
+
   <!-- Google Font: Source Sans Pro -->
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
   <!-- Font Awesome -->

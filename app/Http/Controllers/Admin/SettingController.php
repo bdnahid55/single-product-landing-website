@@ -24,6 +24,7 @@ class SettingController extends Controller
     {
         // Handle Image Uploads
         $fileInputs = [
+            'site_favicon_file'        => 'site_favicon',
             'og_image_file'            => 'og_image',
             'hero_bg_image_file'       => 'hero_bg_image',
             'hero_product_image_file'  => 'hero_product_image',
@@ -38,6 +39,11 @@ class SettingController extends Controller
             if ($request->hasFile($fileKey)) {
                 $path = $request->file($fileKey)->store('uploads', 'public');
                 Setting::set($settingKey, 'storage/' . $path, 'content');
+
+                if ($fileKey === 'site_favicon_file') {
+                    @copy(storage_path('app/public/' . $path), public_path('favicon.ico'));
+                    @copy(storage_path('app/public/' . $path), public_path('assets/images/favicon.png'));
+                }
             }
         }
 

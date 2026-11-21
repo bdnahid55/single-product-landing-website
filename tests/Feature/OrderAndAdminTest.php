@@ -55,6 +55,8 @@ class OrderAndAdminTest extends TestCase
         $response->assertSee('খাঁটি সুন্দরবনের মধু');
         $response->assertSee('1,050.00');
         $response->assertSee('<textarea name="customer_address" id="customerAddress"', false);
+        $response->assertSee('rel="icon"', false);
+        $response->assertSee('favicon', false);
     }
 
     public function test_customer_can_place_order_with_multiline_address_textarea(): void

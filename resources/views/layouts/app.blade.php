@@ -14,6 +14,9 @@
   <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
   <link rel="canonical" href="@yield('canonical_url', !empty($settings['canonical_url']) ? $settings['canonical_url'] : url()->current())">
 
+  <!-- Website Favicon -->
+  @include('partials.favicon')
+
   @php
     $ogImage = !empty($settings['og_image'])
       ? (str_starts_with($settings['og_image'], 'http') ? $settings['og_image'] : asset($settings['og_image']))
