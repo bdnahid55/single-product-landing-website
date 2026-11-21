@@ -79,8 +79,8 @@ class ProductController extends Controller
         $validated = $request->validate([
             'name'              => 'required|string|max:255',
             'weight'            => 'nullable|string|max:50',
-            'regular_price'     => 'required|numeric|min:0',
-            'sale_price'        => 'required|numeric|min:0',
+            'regular_price'     => 'required|numeric|min:0|gte:sale_price',
+            'sale_price'        => 'required|numeric|min:0|lte:regular_price',
             'stock'             => 'required|integer|min:0',
             'badge'             => 'nullable|string|max:50',
             'short_description' => 'nullable|string',
@@ -88,6 +88,9 @@ class ProductController extends Controller
             'image'             => 'nullable|image|mimes:jpeg,png,jpg,webp|max:3072',
             'is_featured'       => 'nullable|boolean',
             'is_active'         => 'nullable|boolean',
+        ], [
+            'regular_price.gte' => 'নিয়মিত মূল্য (Regular Price) অবশ্যই বিক্রয় মূল্য (Sale Price) এর সমান বা বেশি হতে হবে।',
+            'sale_price.lte'    => 'বিক্রয় মূল্য (Sale Price) নিয়মিত মূল্যের (Regular Price) চেয়ে বেশি হতে পারবে না।',
         ]);
 
         $imagePath = null;
@@ -136,8 +139,8 @@ class ProductController extends Controller
         $validated = $request->validate([
             'name'              => 'required|string|max:255',
             'weight'            => 'nullable|string|max:50',
-            'regular_price'     => 'required|numeric|min:0',
-            'sale_price'        => 'required|numeric|min:0',
+            'regular_price'     => 'required|numeric|min:0|gte:sale_price',
+            'sale_price'        => 'required|numeric|min:0|lte:regular_price',
             'stock'             => 'required|integer|min:0',
             'badge'             => 'nullable|string|max:50',
             'short_description' => 'nullable|string',
@@ -145,6 +148,9 @@ class ProductController extends Controller
             'image'             => 'nullable|image|mimes:jpeg,png,jpg,webp|max:3072',
             'is_featured'       => 'nullable|boolean',
             'is_active'         => 'nullable|boolean',
+        ], [
+            'regular_price.gte' => 'নিয়মিত মূল্য (Regular Price) অবশ্যই বিক্রয় মূল্য (Sale Price) এর সমান বা বেশি হতে হবে।',
+            'sale_price.lte'    => 'বিক্রয় মূল্য (Sale Price) নিয়মিত মূল্যের (Regular Price) চেয়ে বেশি হতে পারবে না।',
         ]);
 
         $data = [

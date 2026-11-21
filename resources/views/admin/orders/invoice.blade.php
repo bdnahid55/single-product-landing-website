@@ -68,7 +68,7 @@
       <div class="col-sm-4 invoice-col">
         To (Customer)
         <address>
-          <strong>Name:{{ $order->customer_name }}</strong><br>
+          <strong>Name: </strong>{{ $order->customer_name }}<br>
           <strong>Address: </strong>{{ $order->customer_address }}<br>
           <strong>Phone: </strong>{{ $order->customer_phone }}<br>
           <strong>Area: </strong>{{ $order->delivery_area == 'inside_dhaka' ? 'ঢাকার ভিতরে (Inside Dhaka)' : 'ঢাকার বাইরে (Outside Dhaka)' }}

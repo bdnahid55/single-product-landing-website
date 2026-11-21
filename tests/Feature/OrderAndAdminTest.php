@@ -1348,4 +1348,68 @@ class OrderAndAdminTest extends TestCase
         $this->assertEquals('delivered', $order->fresh()->order_status);
         $this->assertEquals('paid', $order->fresh()->payment_status);
     }
+
+    public function test_inactive_and_out_of_stock_products_cannot_be_ordered(): void
+    {
+        // 1. Inactive product order blocked
+        $inactiveProduct = Product::create([
+            'name'          => 'ড্রাফট মধু',
+            'slug'          => 'draft-honey',
+            'regular_price' => 1200,
+            'sale_price'    => 1050,
+            'stock'         => 10,
+            'is_active'     => false,
+        ]);
+
+        $inactiveResp = $this->post('/orders', [
+            'customer_name'    => 'টেস্ট কাস্টমার',
+            'customer_phone'   => '01712345678',
+            'customer_address' => 'ঢাকা',
+            'delivery_area'    => 'inside_dhaka',
+            'product_id'       => $inactiveProduct->id,
+            'quantity'         => 1,
+        ]);
+        $inactiveResp->assertSessionHas('error');
+
+        // 2. Out of stock product blocked
+        $outOfStockProduct = Product::create([
+            'name'          => 'স্টকহীন মধু',
+            'slug'          => 'out-of-stock-honey',
+            'regular_price' => 1200,
+            'sale_price'    => 1050,
+            'stock'         => 0,
+            'is_active'     => true,
+        ]);
+
+        $outOfStockResp = $this->post('/orders', [
+            'customer_name'    => 'টেস্ট কাস্টমার ২',
+            'customer_phone'   => '01712345679',
+            'customer_address' => 'ঢাকা',
+            'delivery_area'    => 'inside_dhaka',
+            'product_id'       => $outOfStockProduct->id,
+            'quantity'         => 1,
+        ]);
+        $outOfStockResp->assertSessionHas('error');
+        $this->assertStringContainsString('স্টক শেষ', session('error'));
+    }
+
+    public function test_product_price_validation_prevents_sale_price_exceeding_regular_price(): void
+    {
+        $resp = $this->actingAs($this->admin)->post('/admin/products', [
+            'name'          => 'ভুল মূল্যের মধু',
+            'regular_price' => 500,
+            'sale_price'    => 800, // Invalid: sale_price > regular_price
+            'stock'         => 10,
+        ]);
+        $resp->assertSessionHasErrors(['regular_price', 'sale_price']);
+    }
+
+    public function test_homepage_gracefully_handles_zero_active_products(): void
+    {
+        Product::query()->update(['is_active' => false]);
+
+        $resp = $this->get('/');
+        $resp->assertStatus(200);
+        $resp->assertSee('বর্তমানে কোনো পণ্য বিক্রয়ের জন্য সক্রিয় নেই');
+    }
 }

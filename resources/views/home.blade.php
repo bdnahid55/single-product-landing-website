@@ -711,9 +711,10 @@
     <!-- ==========================================================================
          10. Interactive Order Form Section (#orderForm)
          ========================================================================== -->
-    @if(($settings['section_order_form_show'] ?? '1') == '1' && $defaultProd)
+    @if(($settings['section_order_form_show'] ?? '1') == '1')
     <section id="orderForm" class="order-form-section" aria-label="অর্ডার ফর্ম">
       <div class="container">
+        @if($defaultProd)
         <div class="order-form-card">
 
           <!-- Real Order Submission Form wrapping products and fields -->
@@ -928,6 +929,13 @@
           </form>
 
         </div>
+        @else
+        <div class="alert alert-warning text-center py-5 shadow-sm rounded-4 bg-white my-4">
+          <i class="bi bi-exclamation-circle text-warning fs-1 d-block mb-2"></i>
+          <h4 class="fw-bold mb-2">বর্তমানে কোনো পণ্য বিক্রয়ের জন্য সক্রিয় নেই</h4>
+          <p class="text-muted mb-0">শীঘ্রই নতুন মধু সংগ্রহ করে নতুন স্টক যুক্ত করা হবে! বিস্তারিত তথ্যের জন্য আমাদের সাথে যোগাযোগ করুন।</p>
+        </div>
+        @endif
       </div>
     </section>
     @endif

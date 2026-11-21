@@ -36,6 +36,12 @@ class OrderController extends Controller
                 $qty = isset($quantities[$pId]) ? max(1, min(50, intval($quantities[$pId]))) : 1;
                 $product = Product::find($pId);
                 if ($product && $product->is_active) {
+                    if ($product->stock <= 0) {
+                        return back()->withInput()->with('error', 'দুঃখিত! "' . $product->name . '" এর স্টক শেষ হয়ে গেছে।');
+                    }
+                    if ($qty > $product->stock) {
+                        return back()->withInput()->with('error', 'দুঃখিত! "' . $product->name . '" এর পর্যাপ্ত স্টক নেই (সর্বোচ্চ ' . $product->stock . 'টি স্টক রয়েছে)।');
+                    }
                     $itemSubtotal = $product->sale_price * $qty;
                     $subtotal += $itemSubtotal;
                     $orderItemsData[] = [
@@ -57,6 +63,12 @@ class OrderController extends Controller
                     $qty = isset($item['quantity']) ? max(1, min(50, intval($item['quantity']))) : 1;
                     $product = Product::find($item['product_id']);
                     if ($product && $product->is_active) {
+                        if ($product->stock <= 0) {
+                            return back()->withInput()->with('error', 'দুঃখিত! "' . $product->name . '" এর স্টক শেষ হয়ে গেছে।');
+                        }
+                        if ($qty > $product->stock) {
+                            return back()->withInput()->with('error', 'দুঃখিত! "' . $product->name . '" এর পর্যাপ্ত স্টক নেই (সর্বোচ্চ ' . $product->stock . 'টি স্টক রয়েছে)।');
+                        }
                         $itemSubtotal = $product->sale_price * $qty;
                         $subtotal += $itemSubtotal;
                         $orderItemsData[] = [
@@ -74,8 +86,21 @@ class OrderController extends Controller
         }
         // Case 3: Single Product Mode (product_id and quantity)
         elseif (!empty($validated['product_id'])) {
-            $qty = !empty($validated['quantity']) ? intval($validated['quantity']) : 1;
-            $product = Product::findOrFail($validated['product_id']);
+            $product = Product::find($validated['product_id']);
+            if (!$product || !$product->is_active) {
+                return back()->withInput()
+                    ->withErrors(['product' => 'দুঃখিত! নির্বাচিত পণ্যটি বর্তমানে বিক্রয়ের জন্য সক্রিয় নয়।'])
+                    ->with('error', 'দুঃখিত! নির্বাচিত পণ্যটি বর্তমানে বিক্রয়ের জন্য সক্রিয় নয়।');
+            }
+
+            $qty = !empty($validated['quantity']) ? max(1, min(50, intval($validated['quantity']))) : 1;
+            if ($product->stock <= 0) {
+                return back()->withInput()->with('error', 'দুঃখিত! "' . $product->name . '" এর স্টক শেষ হয়ে গেছে।');
+            }
+            if ($qty > $product->stock) {
+                return back()->withInput()->with('error', 'দুঃখিত! "' . $product->name . '" এর পর্যাপ্ত স্টক নেই (সর্বোচ্চ ' . $product->stock . 'টি স্টক রয়েছে)।');
+            }
+
             $itemSubtotal = $product->sale_price * $qty;
             $subtotal += $itemSubtotal;
             $orderItemsData[] = [
