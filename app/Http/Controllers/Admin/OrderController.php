@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Order;
+use App\Models\Setting;
 use Illuminate\Http\Request;
 
 class OrderController extends Controller
@@ -55,6 +56,7 @@ class OrderController extends Controller
     public function invoice(Order $order)
     {
         $order->load('items');
-        return view('admin.orders.invoice', compact('order'));
+        $settings = Setting::getAllSettings();
+        return view('admin.orders.invoice', compact('order', 'settings'));
     }
 }

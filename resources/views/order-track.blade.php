@@ -106,12 +106,18 @@
 @endpush
 
 @section('content')
+@php
+  $seoTitle = !empty($settings['meta_title']) ? $settings['meta_title'] : (!empty($settings['site_title']) ? $settings['site_title'] : 'খাঁটি সুন্দরবনের মধু');
+  $siteFavicon = !empty($settings['site_favicon'])
+    ? (str_starts_with($settings['site_favicon'], 'http') ? $settings['site_favicon'] : asset($settings['site_favicon']))
+    : asset('assets/images/favicon.png');
+@endphp
 <!-- Top Navbar -->
 <header class="bg-white border-bottom py-3 sticky-top shadow-sm">
   <div class="container d-flex justify-content-between align-items-center">
     <a href="{{ route('home') }}" class="text-decoration-none d-flex align-items-center gap-2">
-      <span class="fs-4">🍯</span>
-      <span class="fw-bold text-dark fs-5">{{ $settings['site_title'] ?? '' }}</span>
+      <img src="{{ $siteFavicon }}" alt="Logo" style="height: 36px; width: 36px; object-fit: contain; border-radius: 6px;">
+      <span class="fw-bold text-dark fs-5">{{ $seoTitle }}</span>
     </a>
     <a href="{{ route('home') }}" class="btn btn-outline-success btn-sm rounded-pill px-3">
       <i class="bi bi-house-door me-1"></i> হোমপেজে যান

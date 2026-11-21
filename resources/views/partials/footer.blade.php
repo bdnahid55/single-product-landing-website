@@ -1,3 +1,9 @@
+@php
+  $settings = $settings ?? \App\Models\Setting::getAllSettings();
+  $footerFavicon = !empty($settings['site_favicon'])
+    ? (str_starts_with($settings['site_favicon'], 'http') ? $settings['site_favicon'] : asset($settings['site_favicon']))
+    : asset('assets/images/favicon.png');
+@endphp
 @if(($settings['section_footer_show'] ?? '1') == '1')
 <footer id="footer" class="footer-section">
   <div class="container">
@@ -6,7 +12,8 @@
       <!-- Column 1: Brand & Bio -->
       <div class="col-lg-4 col-md-6">
         <div class="footer-brand">
-          <span>🍯</span> {{ $settings['footer_brand_name'] ?? $settings['site_title'] ?? 'খাঁটি মধু' }}
+          <img src="{{ $footerFavicon }}" alt="Logo" style="height: 36px; width: 36px; object-fit: contain; border-radius: 6px; flex-shrink: 0;">
+          <span>{{ $settings['footer_brand_name'] ?? $settings['site_title'] ?? 'খাঁটি মধু' }}</span>
         </div>
         <p class="footer-about-text">
           {{ $settings['site_tagline'] ?? 'সুন্দরবনের গহীন বন থেকে সরাসরি আপনার ঘরে — ১০০% খাঁটি ও প্রাকৃতিক মধু।' }}

@@ -201,6 +201,7 @@ class OrderAndAdminTest extends TestCase
         $response->assertSee('আব্দুল কাদের');
         $response->assertSee('Print Invoice');
         $response->assertDontSee('Order ID:');
+        $response->assertSee('alt="Logo"', false);
     }
 
     public function test_admin_can_create_new_product(): void
@@ -364,6 +365,7 @@ class OrderAndAdminTest extends TestCase
         $pageResponse->assertStatus(200);
         $pageResponse->assertSee('অর্ডার ট্র্যাকিং (Order Tracking)');
         $pageResponse->assertSee('আপনার অর্ডারের তথ্য খুঁজুন');
+        $pageResponse->assertSee('alt="Logo"', false);
 
         // 2. Track existing order
         $order = Order::create([
@@ -414,6 +416,7 @@ class OrderAndAdminTest extends TestCase
         $response->assertSee(route('order.track'));
         $response->assertDontSee('>সাইটম্যাপ<', false);
         $response->assertDontSee('>অ্যাডমিন লগইন<', false);
+        $response->assertDontSee('<div class="footer-brand"><span>🍯</span>', false);
     }
 
     public function test_seo_metadata_open_graph_and_sitemap_are_present(): void

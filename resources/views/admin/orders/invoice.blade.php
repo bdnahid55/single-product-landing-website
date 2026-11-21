@@ -32,14 +32,24 @@
     </div>
   </div>
 
+  @php
+    $settings = $settings ?? \App\Models\Setting::getAllSettings();
+    $seoTitle = !empty($settings['meta_title']) ? $settings['meta_title'] : (!empty($settings['site_title']) ? $settings['site_title'] : '');
+    $siteFavicon = !empty($settings['site_favicon'])
+      ? (str_starts_with($settings['site_favicon'], 'http') ? $settings['site_favicon'] : asset($settings['site_favicon']))
+      : asset('assets/images/favicon.png');
+  @endphp
+
   <!-- Main content -->
   <section class="invoice border p-4 rounded bg-white shadow-sm">
     <!-- title row -->
     <div class="row">
-      <div class="col-12 pb-3 mb-3 border-bottom">
-        <h2 class="page-header"> খাঁটি সুন্দরবনের মধু
-          <small class="float-right text-muted" style="font-size: 1rem;">Date: {{ $order->created_at->format('d/m/Y') }}</small>
+      <div class="col-12 pb-3 mb-3 border-bottom d-flex justify-content-between align-items-center">
+        <h2 class="page-header m-0 d-inline-flex align-items-center" style="font-size: 1.6rem; font-weight: 700;">
+          <img src="{{ $siteFavicon }}" alt="Logo" style="height: 38px; width: 38px; object-fit: contain; margin-right: 12px; border-radius: 6px; vertical-align: middle;">
+          <span>{{ $seoTitle }}</span>
         </h2>
+        <span class="text-muted" style="font-size: 1rem;">Date: {{ $order->created_at->format('d/m/Y') }}</span>
       </div>
     </div>
 
@@ -48,20 +58,20 @@
       <div class="col-sm-4 invoice-col">
         From
         <address>
-          <strong>খাঁটি মধু (Sundarban Pure Honey)</strong><br>
-          Phone: {{ \App\Models\Setting::get('contact_phone', '01700-000000') }}<br>
-          WhatsApp: {{ \App\Models\Setting::get('whatsapp_number', '01700-000000') }}<br>
-          Email: {{ \App\Models\Setting::get('contact_email', 'info@modhu.com') }}
+          <strong>{{ $settings['meta_title'] ?? '' }}</strong><br>
+          <strong>Phone:</strong> {{ \App\Models\Setting::get('contact_phone', '') }}<br>
+          <strong>WhatsApp:</strong> {{ \App\Models\Setting::get('whatsapp_number', '') }}<br>
+          <strong>Email:</strong> {{ \App\Models\Setting::get('contact_email', '') }}
         </address>
       </div>
 
       <div class="col-sm-4 invoice-col">
         To (Customer)
         <address>
-          <strong>{{ $order->customer_name }}</strong><br>
-          {{ $order->customer_address }}<br>
-          Phone: <strong>{{ $order->customer_phone }}</strong><br>
-          Area: {{ $order->delivery_area == 'inside_dhaka' ? 'ঢাকার ভিতরে (Inside Dhaka)' : 'ঢাকার বাইরে (Outside Dhaka)' }}
+          <strong>Name:{{ $order->customer_name }}</strong><br>
+          <strong>Address: </strong>{{ $order->customer_address }}<br>
+          <strong>Phone: </strong>{{ $order->customer_phone }}<br>
+          <strong>Area: </strong>{{ $order->delivery_area == 'inside_dhaka' ? 'ঢাকার ভিতরে (Inside Dhaka)' : 'ঢাকার বাইরে (Outside Dhaka)' }}
         </address>
       </div>
 
