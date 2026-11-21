@@ -39,6 +39,10 @@ Route::get('/login', function () {
 Route::prefix('admin')->name('admin.')->group(function () {
     Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
     Route::post('/login', [AuthController::class, 'login'])->name('login.submit');
+    Route::get('/verify-otp', [AuthController::class, 'showOtpForm'])->name('otp.show');
+    Route::post('/verify-otp', [AuthController::class, 'verifyOtp'])->name('otp.verify');
+    Route::post('/resend-otp', [AuthController::class, 'resendOtp'])->name('otp.resend');
+    Route::get('/cancel-otp', [AuthController::class, 'cancelOtp'])->name('otp.cancel');
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 });
 

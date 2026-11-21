@@ -152,13 +152,37 @@ class OrderAndAdminTest extends TestCase
 
     public function test_admin_can_login_with_valid_credentials(): void
     {
+        // 1. Valid credentials redirect to OTP verification screen
         $response = $this->post('/admin/login', [
             'email'    => 'admin@modhu.com',
             'password' => 'password123',
         ]);
 
-        $response->assertRedirect(route('admin.dashboard'));
+        $response->assertRedirect(route('admin.otp.show'));
+        $this->assertGuest();
+
+        $this->admin->refresh();
+        $this->assertNotNull($this->admin->two_factor_code);
+        $otp = $this->admin->two_factor_code;
+
+        // 2. Can view OTP verification screen
+        $otpPage = $this->get('/admin/verify-otp');
+        $otpPage->assertStatus(200);
+        $otpPage->assertSee('ওটিপি যাচাইকরণ');
+
+        // 3. Wrong OTP returns validation error
+        $wrongResp = $this->post('/admin/verify-otp', ['otp' => '000000']);
+        $wrongResp->assertSessionHasErrors('otp');
+        $this->assertGuest();
+
+        // 4. Valid OTP successfully logs in and redirects to dashboard
+        $verifyResp = $this->post('/admin/verify-otp', ['otp' => $otp]);
+        $verifyResp->assertRedirect(route('admin.dashboard'));
         $this->assertAuthenticatedAs($this->admin);
+
+        // 5. Code is wiped after login
+        $this->admin->refresh();
+        $this->assertNull($this->admin->two_factor_code);
     }
 
     public function test_unauthenticated_user_cannot_access_admin_dashboard(): void
@@ -746,12 +770,18 @@ class OrderAndAdminTest extends TestCase
         $this->assertTrue($newAdmin->is_admin);
         $this->assertTrue($newAdmin->hasRole('Manager'));
 
-        // 4. Test that the new admin can log in
+        // 4. Test that the new admin can log in with OTP
         $loginResp = $this->post('/admin/login', [
             'email'    => 'assistant@modhu.com',
             'password' => 'secure123',
         ]);
-        $loginResp->assertRedirect(route('admin.dashboard'));
+        $loginResp->assertRedirect(route('admin.otp.show'));
+
+        $newAdmin->refresh();
+        $verifyResp = $this->post('/admin/verify-otp', [
+            'otp' => $newAdmin->two_factor_code,
+        ]);
+        $verifyResp->assertRedirect(route('admin.dashboard'));
 
         // 5. Edit the new admin
         $editResp = $this->actingAs($this->admin)->put("/admin/users/{$newAdmin->id}", [
@@ -958,5 +988,36 @@ class OrderAndAdminTest extends TestCase
         $this->actingAs($newAdmin)->get('/admin/orders')->assertStatus(200);
         $this->actingAs($newAdmin)->get('/admin/sections')->assertStatus(200);
         $this->actingAs($newAdmin)->get('/admin/settings')->assertStatus(403);
+    }
+
+    public function test_expired_otp_cannot_be_used(): void
+    {
+        $this->post('/admin/login', [
+            'email'    => 'admin@modhu.com',
+            'password' => 'password123',
+        ]);
+
+        $this->admin->refresh();
+        $this->admin->update(['two_factor_expires_at' => now()->subMinute()]);
+
+        $verifyResp = $this->post('/admin/verify-otp', [
+            'otp' => $this->admin->two_factor_code,
+        ]);
+        $verifyResp->assertSessionHasErrors('otp');
+        $this->assertGuest();
+    }
+
+    public function test_otp_cancel_clears_session_and_redirects_to_login(): void
+    {
+        $this->post('/admin/login', [
+            'email'    => 'admin@modhu.com',
+            'password' => 'password123',
+        ]);
+
+        $this->assertTrue(session()->has('admin_otp_user_id'));
+
+        $cancelResp = $this->get('/admin/cancel-otp');
+        $cancelResp->assertRedirect(route('admin.login'));
+        $this->assertFalse(session()->has('admin_otp_user_id'));
     }
 }
