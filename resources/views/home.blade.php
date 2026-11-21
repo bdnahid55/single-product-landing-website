@@ -587,7 +587,10 @@
         <div class="video-card-frame">
           <div class="ratio ratio-16x9 video-inner-wrapper" id="videoContainer" data-video-id="{{ $videoId }}">
             <div class="video-facade" id="videoFacade">
-              <img src="{{ asset('assets/images/video-poster.jpg') }}" alt="{{ $videoTitle }}" class="video-poster-img" loading="lazy" width="800" height="450">
+              @php
+                $videoPoster = !empty($settings['video_poster_image']) ? asset($settings['video_poster_image']) : asset('assets/images/video-poster.jpg');
+              @endphp
+              <img src="{{ $videoPoster }}" alt="{{ $videoTitle }}" class="video-poster-img" loading="lazy" width="800" height="450">
               <div class="video-play-overlay">
                 <button type="button" class="video-play-btn" aria-label="Play YouTube Video" id="videoPlayBtn">
                   <svg viewBox="0 0 68 48" class="yt-play-svg">

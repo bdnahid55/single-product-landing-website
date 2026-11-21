@@ -1172,4 +1172,41 @@ class OrderAndAdminTest extends TestCase
         \Illuminate\Support\Facades\Storage::disk('public')->assertMissing($oldPath);
         \Illuminate\Support\Facades\Storage::disk('public')->assertExists($product->image);
     }
+
+    public function test_backup_service_cleans_temporary_dump_directory()
+    {
+        $backupService = new \App\Services\BackupService();
+        $zipPath = $backupService->createBackup('db');
+
+        $this->assertFileExists($zipPath);
+
+        // Verify that no temporary database dump files remain orphaned in backup-temp
+        $tempDir = storage_path('app/backup-temp');
+        $tempFiles = \Illuminate\Support\Facades\File::files($tempDir);
+        $this->assertCount(0, $tempFiles);
+
+        // Clean up created backup file
+        if (\Illuminate\Support\Facades\File::exists($zipPath)) {
+            \Illuminate\Support\Facades\File::delete($zipPath);
+        }
+    }
+
+    public function test_video_poster_image_can_be_customized_dynamically()
+    {
+        \Illuminate\Support\Facades\Storage::fake('public');
+
+        $poster = \Illuminate\Http\UploadedFile::fake()->image('custom-video-poster.jpg');
+
+        $resp = $this->actingAs($this->admin)->put('/admin/settings', [
+            'video_poster_file' => $poster,
+        ]);
+        $resp->assertRedirect();
+
+        $savedPoster = \App\Models\Setting::get('video_poster_image');
+        $this->assertNotEmpty($savedPoster);
+
+        $homeResp = $this->get('/');
+        $homeResp->assertStatus(200);
+        $homeResp->assertSee(asset($savedPoster));
+    }
 }

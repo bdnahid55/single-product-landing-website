@@ -39,39 +39,63 @@ class BackupService
 
         $tempFilesToDelete = [];
 
-        // 1. Process Database Dump if requested
-        if (in_array($type, ['full', 'db'])) {
-            $dumpFiles = $this->dumpDatabase();
-            foreach ($dumpFiles as $internalName => $filePath) {
-                if (File::exists($filePath)) {
-                    $zip->addFile($filePath, $internalName);
-                    $tempFilesToDelete[] = $filePath;
+        try {
+            // 1. Process Database Dump if requested
+            if (in_array($type, ['full', 'db'])) {
+                $dumpFiles = $this->dumpDatabase();
+                foreach ($dumpFiles as $internalName => $filePath) {
+                    if (File::exists($filePath)) {
+                        $zip->addFile($filePath, $internalName);
+                        $tempFilesToDelete[] = $filePath;
+                    }
                 }
             }
+
+            // 2. Process Media & Uploaded Files if requested
+            if (in_array($type, ['full', 'files'])) {
+                $this->addMediaFilesToZip($zip);
+            }
+
+            // 3. Add a backup manifest / readme
+            $manifest = $this->generateManifest($type, $timestamp);
+            $zip->addFromString('backup-manifest.json', json_encode($manifest, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
+
+            $zip->close();
+
+            // 4. Apply Retention Cleanup
+            $this->cleanOldBackups();
+
+            Log::info("Backup archive successfully created: {$zipFileName} (Type: {$type}, Size: " . File::size($zipPath) . " bytes)");
+
+            return $zipPath;
+        } finally {
+            // Guarantee all temporary dump files are deleted even if an exception occurs
+            foreach ($tempFilesToDelete as $tFile) {
+                if (File::exists($tFile)) {
+                    @unlink($tFile);
+                }
+            }
+            $this->cleanTempDirectory();
         }
+    }
 
-        // 2. Process Media & Uploaded Files if requested
-        if (in_array($type, ['full', 'files'])) {
-            $this->addMediaFilesToZip($zip);
+    /**
+     * Clean any stray files in the temporary directory older than 10 minutes.
+     */
+    protected function cleanTempDirectory(): void
+    {
+        try {
+            if (File::exists($this->tempDir)) {
+                $files = File::files($this->tempDir);
+                foreach ($files as $file) {
+                    if (str_starts_with($file->getFilename(), 'database-') || (time() - $file->getMTime()) > 600) {
+                        @unlink($file->getPathname());
+                    }
+                }
+            }
+        } catch (\Throwable $e) {
+            // Ignore temp cleanup errors
         }
-
-        // 3. Add a backup manifest / readme
-        $manifest = $this->generateManifest($type, $timestamp);
-        $zip->addFromString('backup-manifest.json', json_encode($manifest, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
-
-        $zip->close();
-
-        // 4. Clean up temporary dump files
-        foreach ($tempFilesToDelete as $tFile) {
-            @unlink($tFile);
-        }
-
-        // 5. Apply Retention Cleanup
-        $this->cleanOldBackups();
-
-        Log::info("Backup archive successfully created: {$zipFileName} (Type: {$type}, Size: " . File::size($zipPath) . " bytes)");
-
-        return $zipPath;
     }
 
     /**

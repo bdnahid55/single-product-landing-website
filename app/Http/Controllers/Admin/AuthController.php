@@ -63,14 +63,13 @@ class AuthController extends Controller
 
         // Dispatch OTP notification email using database-configured mailer
         \App\Services\MailConfigService::apply();
-        \App\Services\MailConfigService::apply();
         try {
             Mail::to($user->email)->send(new AdminLoginOtpMail($user, $otp));
         } catch (\Throwable $e) {
             Log::warning('Could not dispatch Admin OTP email: ' . $e->getMessage());
         }
 
-        Log::info("Admin Login OTP generated for {$user->email}: {$otp}");
+        Log::info("Admin Login OTP generated for {$user->email}");
 
         return redirect()->route('admin.otp.show')
             ->with('info', 'আপনার ইমেইলে (' . $user->masked_email . ') একটি ৬-সংখ্যার ওটিপি কোড পাঠানো হয়েছে।');
@@ -201,7 +200,7 @@ class AuthController extends Controller
             Log::warning('Could not dispatch Admin OTP email: ' . $e->getMessage());
         }
 
-        Log::info("Admin Login OTP resent for {$user->email}: {$otp}");
+        Log::info("Admin Login OTP resent for {$user->email}");
 
         return back()->with('success', 'নতুন ওটিপি কোড আপনার ইমেইলে পাঠানো হয়েছে!');
     }

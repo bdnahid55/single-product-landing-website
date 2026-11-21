@@ -27,15 +27,26 @@ class SettingController extends Controller
         $normalizedTracking = $this->normalizeTrackingInputs($request);
         $request->merge($normalizedTracking);
 
-        // 2. Validate tracking fields strictly to prevent syntax errors and stored XSS vulnerabilities
+        // 2. Validate tracking fields and file uploads strictly to prevent syntax errors, stored XSS, and arbitrary uploads
         $request->validate([
             'google_site_verification' => ['nullable', 'string', 'max:255', 'regex:/^[a-zA-Z0-9_\-]+$/'],
             'google_analytics_id'      => ['nullable', 'string', 'max:50', 'regex:/^(G-[A-Za-z0-9]+|UA-[0-9]+-[0-9]+)$/'],
             'facebook_pixel_id'        => ['nullable', 'string', 'max:30', 'regex:/^[0-9]{5,25}$/'],
+            'site_favicon_file'        => ['nullable', 'file', 'mimes:ico,png,jpg,jpeg,svg,webp', 'max:2048'],
+            'og_image_file'            => ['nullable', 'file', 'mimes:jpeg,png,jpg,webp', 'max:4096'],
+            'hero_bg_image_file'       => ['nullable', 'file', 'mimes:jpeg,png,jpg,webp', 'max:5120'],
+            'hero_product_image_file'  => ['nullable', 'file', 'mimes:jpeg,png,jpg,webp', 'max:5120'],
+            'gallery_img1_file'        => ['nullable', 'file', 'mimes:jpeg,png,jpg,webp', 'max:4096'],
+            'gallery_img2_file'        => ['nullable', 'file', 'mimes:jpeg,png,jpg,webp', 'max:4096'],
+            'gallery_img3_file'        => ['nullable', 'file', 'mimes:jpeg,png,jpg,webp', 'max:4096'],
+            'gallery_img4_file'        => ['nullable', 'file', 'mimes:jpeg,png,jpg,webp', 'max:4096'],
+            'video_poster_file'        => ['nullable', 'file', 'mimes:jpeg,png,jpg,webp', 'max:4096'],
         ], [
             'google_site_verification.regex' => 'গুগল সার্চ কনসোল ভেরিফিকেশন কোডে শুধু বৈধ টোকেন ক্যারেক্টার (বর্ণ, সংখ্যা, ড্যাশ বা আন্ডারস্কোর) থাকতে পারবে।',
             'google_analytics_id.regex'      => 'গুগল অ্যানালিটিক্স ৪ আইডি অবশ্যই সঠিক ফরম্যাটে (যেমন: G-XXXXXXXXXX) হতে হবে।',
             'facebook_pixel_id.regex'        => 'ফেসবুক পিক্সেল আইডি অবশ্যই শুধুমাত্র সংখ্যার (যেমন: 123456789012345) হতে হবে।',
+            '*.mimes'                        => 'অনুগ্রহ করে শুধুমাত্র অনুমোদিত ইমেজ ফরম্যাট (JPEG, PNG, WEBP, ICO) ফাইল আপলোড করুন।',
+            '*.max'                          => 'আপলোড করা ফাইলটির আকার অনুমোদিত সীমার চেয়ে বেশি।',
         ]);
 
         // 3. Handle Image Uploads

@@ -595,6 +595,26 @@
                 </div>
               </div>
 
+              <div class="row mt-2">
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label for="video_poster_file">ভিডিও পোস্টার / প্রিভিউ ইমেজ আপলোড (Custom Video Poster)</label>
+                    <div class="custom-file">
+                      <input type="file" name="video_poster_file" class="custom-file-input" id="video_poster_file" accept="image/*">
+                      <label class="custom-file-label" for="video_poster_file">Choose poster image...</label>
+                    </div>
+                    <small class="text-muted">ইউটিউব ভিডিও প্লে করার পূর্বে এই ছবিটি হোমপেজে প্রদর্শিত হবে।</small>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  @php
+                    $currentPoster = !empty($settings['video_poster_image']) ? asset($settings['video_poster_image']) : asset('assets/images/video-poster.jpg');
+                  @endphp
+                  <label class="d-block">বর্তমান ভিডিও পোস্টার প্রিভিউ:</label>
+                  <img src="{{ $currentPoster }}" alt="Video Poster" style="max-height: 85px; border-radius: 6px; border: 1px solid #ddd;" class="shadow-sm">
+                </div>
+              </div>
+
               <div class="card card-outline card-primary bg-light mb-4 shadow-sm mt-4">
                 <div class="card-body py-2 d-flex flex-wrap justify-content-between align-items-center">
                   <div class="mb-2 mb-md-0">
