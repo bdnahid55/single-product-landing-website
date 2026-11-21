@@ -61,7 +61,9 @@ class AuthController extends Controller
             'admin_otp_sent_at'  => now()->timestamp,
         ]);
 
-        // Dispatch OTP notification email
+        // Dispatch OTP notification email using database-configured mailer
+        \App\Services\MailConfigService::apply();
+        \App\Services\MailConfigService::apply();
         try {
             Mail::to($user->email)->send(new AdminLoginOtpMail($user, $otp));
         } catch (\Throwable $e) {
@@ -192,6 +194,7 @@ class AuthController extends Controller
         $otp = $user->generateTwoFactorCode();
         session(['admin_otp_sent_at' => now()->timestamp]);
 
+        \App\Services\MailConfigService::apply();
         try {
             Mail::to($user->email)->send(new AdminLoginOtpMail($user, $otp));
         } catch (\Throwable $e) {

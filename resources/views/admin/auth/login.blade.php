@@ -3,7 +3,12 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Admin Login | মধু Admin</title>
+  @php
+    $siteTitle = \App\Models\Setting::get('meta_title') ?: \App\Models\Setting::get('site_title', 'মধু');
+    $brandTitle = \App\Models\Setting::get('site_title', 'মধু');
+    $favicon = \App\Models\Setting::get('site_favicon');
+  @endphp
+  <title>Admin Login | {{ $siteTitle }} Admin</title>
 
   <!-- Favicon -->
   @include('partials.favicon')
@@ -18,8 +23,15 @@
 <body class="hold-transition login-page" style="background-color: #f4f6f9;">
 <div class="login-box">
   <div class="card card-outline card-success shadow-lg">
-    <div class="card-header text-center">
-      <a href="{{ route('home') }}" class="h1">🍯 <b>মধু</b> Admin</a>
+    <div class="card-header text-center py-3">
+      <a href="{{ route('home') }}" class="h2 text-dark font-weight-bold d-inline-flex align-items-center justify-content-center text-decoration-none">
+        @if($favicon)
+          <img src="{{ asset($favicon) }}" alt="Logo" style="height: 38px; width: 38px; object-fit: contain; margin-right: 8px; border-radius: 4px;">
+        @else
+          <span class="mr-2">🍯</span>
+        @endif
+        <span><b>{{ $brandTitle }}</b> <span class="font-weight-light text-secondary">Admin</span></span>
+      </a>
     </div>
     <div class="card-body">
       <p class="login-box-msg">Sign in to manage orders, products & settings</p>
@@ -63,7 +75,7 @@
 
       <div class="text-center mt-4">
         <a href="{{ route('home') }}" class="text-muted small">
-          <i class="fas fa-arrow-left mr-1"></i> Back to Honey Store
+          <i class="fas fa-arrow-left mr-1"></i> {{ $brandTitle }}-এ ফিরে যান (Back to Store)
         </a>
       </div>
 

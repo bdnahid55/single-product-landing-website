@@ -118,6 +118,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     Route::middleware('can:manage-settings')->group(function () {
         Route::get('/settings', [SettingController::class, 'index'])->name('settings.index');
         Route::put('/settings', [SettingController::class, 'update'])->name('settings.update');
+        Route::post('/settings/send-test-email', [SettingController::class, 'sendTestEmail'])->name('settings.send-test-email');
     });
 
     // Admin Accounts Management

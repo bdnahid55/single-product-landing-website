@@ -75,10 +75,44 @@ class SettingController extends Controller
             Setting::set($key, $value !== null ? trim($value) : '');
         }
 
-        // 6. Invalidate application settings cache
+        // 6. Invalidate application settings cache & reload mail config
         Setting::clearCache();
+        \App\Services\MailConfigService::apply();
 
         return back()->with('success', 'Settings updated successfully! Blank items will be hidden on the website.');
+    }
+
+    /**
+     * Send a test email using currently configured SMTP credentials.
+     */
+    public function sendTestEmail(Request $request)
+    {
+        $request->validate([
+            'test_email' => 'required|email',
+        ], [
+            'test_email.required' => 'অনুগ্রহ করে টেস্ট ইমেইল ঠিকানা প্রদান করুন।',
+            'test_email.email'    => 'একটি বৈধ ইমেইল ঠিকানা প্রদান করুন।',
+        ]);
+
+        try {
+            \App\Services\MailConfigService::apply();
+
+            $to = trim($request->input('test_email'));
+            $siteTitle = Setting::get('site_title', 'মধু স্টোর');
+
+            \Illuminate\Support\Facades\Mail::raw(
+                "অভিনন্দন! আপনার SMTP / Mail কনফিগারেশন ডাটাবেজ থেকে সফলভাবে কাজ করছে।\n\nসাইটের নাম: {$siteTitle}\nসময়: " . now()->format('d M, Y h:i A') . "\nপ্রেরক: " . config('mail.from.address'),
+                function ($message) use ($to, $siteTitle) {
+                    $message->to($to)
+                            ->subject("SMTP Test Mail - {$siteTitle}");
+                }
+            );
+
+            return back()->with('success', "টেস্ট ইমেইল সফলভাবে পাঠানো হয়েছে: {$to}। আপনার ইনবক্স অথবা স্প্যাম ফোল্ডার চেক করুন।");
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error("SMTP Test Email Error: " . $e->getMessage());
+            return back()->withErrors(['smtp_error' => "ইমেইল পাঠানো ব্যর্থ হয়েছে! ত্রুটির বিবরণ: " . $e->getMessage()]);
+        }
     }
 
     /**

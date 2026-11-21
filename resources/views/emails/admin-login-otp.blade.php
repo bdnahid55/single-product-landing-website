@@ -82,9 +82,12 @@
   </style>
 </head>
 <body>
+  @php
+    $siteTitle = \App\Models\Setting::get('site_title', 'খাঁটি সুন্দরবনের মধু');
+  @endphp
   <div class="email-container">
     <div class="header">
-      <h1>🍯 মধু Admin Security</h1>
+      <h1> {{ $siteTitle }} Admin Security</h1>
       <p style="margin: 6px 0 0 0; font-size: 14px; opacity: 0.9;">দ্বিমুখী প্রমাণীকরণ (Two-Factor Authentication)</p>
     </div>
 
@@ -110,7 +113,7 @@
     </div>
 
     <div class="footer">
-      &copy; {{ date('Y') }} খাঁটি সুন্দরবনের মধু। সর্বস্বত্ব সংরক্ষিত।<br>
+      &copy; {{ date('Y') }} {{ \App\Models\Setting::get('footer_copyright_text') ?: $siteTitle }}। সর্বস্বত্ব সংরক্ষিত।<br>
       এটি একটি স্বয়ংক্রিয় সিকিউরিটি ইমেইল, এতে রিপ্লাই দেওয়ার প্রয়োজন নেই।
     </div>
   </div>

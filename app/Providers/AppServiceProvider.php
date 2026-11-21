@@ -23,6 +23,9 @@ class AppServiceProvider extends ServiceProvider
     {
         Schema::defaultStringLength(191);
 
+        // Dynamically load SMTP / Mail credentials from database
+        \App\Services\MailConfigService::apply();
+
         // Implicitly grant "Super Admin" role all permissions
         Gate::before(function ($user, $ability) {
             return method_exists($user, 'hasRole') && $user->hasRole('Super Admin') ? true : null;

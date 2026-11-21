@@ -3,7 +3,12 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>ওটিপি যাচাইকরণ (OTP Verification) | মধু Admin</title>
+  @php
+    $siteTitle = \App\Models\Setting::get('meta_title') ?: \App\Models\Setting::get('site_title', 'মধু');
+    $brandTitle = \App\Models\Setting::get('site_title', 'মধু');
+    $favicon = \App\Models\Setting::get('site_favicon');
+  @endphp
+  <title>ওটিপি যাচাইকরণ (OTP Verification) | {{ $siteTitle }} Admin</title>
 
   <!-- Favicon -->
   @include('partials.favicon')
@@ -37,8 +42,13 @@
 <div class="login-box" style="width: 440px; max-width: 95%;">
   <div class="card card-outline card-success shadow-lg">
     <div class="card-header text-center py-3">
-      <a href="{{ route('home') }}" class="h2 text-dark font-weight-bold">
-        🍯 <b>মধু</b> Admin
+      <a href="{{ route('home') }}" class="h2 text-dark font-weight-bold d-inline-flex align-items-center justify-content-center text-decoration-none">
+        @if($favicon)
+          <img src="{{ asset($favicon) }}" alt="Logo" style="height: 38px; width: 38px; object-fit: contain; margin-right: 8px; border-radius: 4px;">
+        @else
+          <span class="mr-2">🍯</span>
+        @endif
+        <span><b>{{ $brandTitle }}</b> <span class="font-weight-light text-secondary">Admin</span></span>
       </a>
       <div class="text-success small font-weight-bold mt-1">
         <i class="fas fa-shield-alt mr-1"></i> দ্বিমুখী প্রমাণীকরণ (2-Factor Authentication)
@@ -126,7 +136,7 @@
 
   <div class="text-center mt-3">
     <a href="{{ route('home') }}" class="text-muted small">
-      <i class="fas fa-arrow-left mr-1"></i> হোমপেজে ফিরে যান (Back to Store)
+      <i class="fas fa-arrow-left mr-1"></i> {{ $brandTitle }}-এ ফিরে যান (Back to Store)
     </a>
   </div>
 </div>

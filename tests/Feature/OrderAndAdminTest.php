@@ -1020,4 +1020,48 @@ class OrderAndAdminTest extends TestCase
         $cancelResp->assertRedirect(route('admin.login'));
         $this->assertFalse(session()->has('admin_otp_user_id'));
     }
+
+    public function test_can_save_and_apply_mail_settings_from_database(): void
+    {
+        $response = $this->actingAs($this->admin)->put('/admin/settings', [
+            'mail_mailer'       => 'smtp',
+            'mail_host'         => 'smtp.mailtrap.io',
+            'mail_port'         => '2525',
+            'mail_username'     => 'testuser123',
+            'mail_password'     => 'testpass123',
+            'mail_encryption'   => 'tls',
+            'mail_from_address' => 'otp@modhu.com',
+            'mail_from_name'    => 'সুন্দরবনের মধু সিকিউরিটি',
+        ]);
+        $response->assertRedirect();
+
+        $this->assertEquals('smtp.mailtrap.io', Setting::get('mail_host'));
+        $this->assertEquals('2525', Setting::get('mail_port'));
+        $this->assertEquals('testuser123', Setting::get('mail_username'));
+
+        \App\Services\MailConfigService::apply();
+
+        $this->assertEquals('smtp', config('mail.default'));
+        $this->assertEquals('smtp.mailtrap.io', config('mail.mailers.smtp.host'));
+        $this->assertEquals(2525, config('mail.mailers.smtp.port'));
+        $this->assertEquals('testuser123', config('mail.mailers.smtp.username'));
+        $this->assertEquals('testpass123', config('mail.mailers.smtp.password'));
+        $this->assertEquals('tls', config('mail.mailers.smtp.encryption'));
+        $this->assertEquals('otp@modhu.com', config('mail.from.address'));
+        $this->assertEquals('সুন্দরবনের মধু সিকিউরিটি', config('mail.from.name'));
+    }
+
+    public function test_otp_page_renders_dynamically_with_database_settings(): void
+    {
+        Setting::set('site_title', 'সুন্দরবনের প্রাকৃতিক মধু');
+
+        $this->post('/admin/login', [
+            'email'    => 'admin@modhu.com',
+            'password' => 'password123',
+        ]);
+
+        $otpPage = $this->get('/admin/verify-otp');
+        $otpPage->assertStatus(200);
+        $otpPage->assertSee('সুন্দরবনের প্রাকৃতিক মধু');
+    }
 }

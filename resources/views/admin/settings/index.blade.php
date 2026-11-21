@@ -74,6 +74,11 @@
               <i class="fas fa-palette mr-1 text-success"></i> 10. Section Colors (কালার ও থিম)
             </a>
           </li>
+          <li class="nav-item">
+            <a class="nav-link font-weight-bold" id="mail-tab" data-toggle="pill" href="#mail-pane" role="tab">
+              <i class="fas fa-envelope-open-text mr-1 text-danger"></i> 11. Mail / SMTP (ইমেইল ও ওটিপি সেটিংস)
+            </a>
+          </li>
         </ul>
       </div>
 
@@ -904,6 +909,193 @@
               </div>
             </div>
 
+            <!-- 11. Mail / SMTP (ইমেইল ও ওটিপি সেটিংস) -->
+            <div class="tab-pane fade" id="mail-pane" role="tabpanel">
+              <div class="callout callout-danger py-2 mb-4">
+                <h5><i class="fas fa-envelope-open-text mr-1 text-danger"></i> ইমেইল ও ওটিপি কনফিগারেশন (Mail & SMTP Configuration)</h5>
+                <p class="mb-0 text-muted">
+                  অ্যাডমিন ড্যাশবোর্ডে লগইনের ওটিপি কোড এবং ওয়েবসাইটের সকল স্বয়ংক্রিয় ইমেইল পাঠানোর জন্য এই তথ্যগুলো ব্যবহৃত হবে। এই মানগুলো সরাসরি ডাটাবেজে সংরক্ষিত থাকে এবং ওটিপি পাঠাতে কাজ করে।
+                </p>
+              </div>
+
+              @if($errors->has('smtp_error'))
+                <div class="alert alert-danger py-2">
+                  <i class="fas fa-exclamation-circle mr-1"></i> {{ $errors->first('smtp_error') }}
+                </div>
+              @endif
+
+              <div class="row">
+                <!-- MAIL_MAILER -->
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label for="mail_mailer" class="font-weight-bold">
+                      MAIL_MAILER (মেইলার ড্রাইভার) <span class="text-danger">*</span>
+                    </label>
+                    <select name="mail_mailer" id="mail_mailer" class="form-control">
+                      @php
+                        $curMailer = $settings['mail_mailer'] ?? config('mail.default', 'smtp');
+                      @endphp
+                      <option value="smtp" {{ $curMailer === 'smtp' ? 'selected' : '' }}>smtp (Recommended for Live Email / Gmail / cPanel)</option>
+                      <option value="log" {{ $curMailer === 'log' ? 'selected' : '' }}>log (Local Testing - writes to storage/logs)</option>
+                      <option value="sendmail" {{ $curMailer === 'sendmail' ? 'selected' : '' }}>sendmail (Server native sendmail)</option>
+                    </select>
+                    <small class="form-text text-muted">সরাসরি ইমেইলে ওটিপি পাঠানোর জন্য <strong>smtp</strong> নির্বাচন করুন।</small>
+                  </div>
+                </div>
+
+                <!-- MAIL_HOST -->
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label for="mail_host" class="font-weight-bold">
+                      MAIL_HOST (মেইল সার্ভার হোস্ট) <span class="text-danger">*</span>
+                    </label>
+                    <input type="text" 
+                           name="mail_host" 
+                           id="mail_host" 
+                           class="form-control" 
+                           value="{{ $settings['mail_host'] ?? config('mail.mailers.smtp.host', 'smtp.gmail.com') }}" 
+                           placeholder="e.g. smtp.gmail.com, mail.yourdomain.com">
+                    <small class="form-text text-muted">যেমন: Gmail এর জন্য <code>smtp.gmail.com</code> অথবা আপনার ডোমেইনের SMTP হোস্ট।</small>
+                  </div>
+                </div>
+
+                <!-- MAIL_PORT -->
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label for="mail_port" class="font-weight-bold">
+                      MAIL_PORT (পোর্ট নম্বর) <span class="text-danger">*</span>
+                    </label>
+                    <input type="number" 
+                           name="mail_port" 
+                           id="mail_port" 
+                           class="form-control" 
+                           value="{{ $settings['mail_port'] ?? config('mail.mailers.smtp.port', 587) }}" 
+                           placeholder="587, 465, বা 2525">
+                    <small class="form-text text-muted">TLS এর জন্য সাধারণ পোর্ট <code>587</code> এবং SSL এর জন্য <code>465</code>।</small>
+                  </div>
+                </div>
+
+                <!-- MAIL_ENCRYPTION -->
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label for="mail_encryption" class="font-weight-bold">
+                      MAIL_ENCRYPTION (সিকিউরিটি এনক্রিপশন)
+                    </label>
+                    @php
+                      $curEnc = strtolower($settings['mail_encryption'] ?? (config('mail.mailers.smtp.encryption') ?? 'tls'));
+                    @endphp
+                    <select name="mail_encryption" id="mail_encryption" class="form-control">
+                      <option value="tls" {{ $curEnc === 'tls' ? 'selected' : '' }}>tls (Recommended for Port 587)</option>
+                      <option value="ssl" {{ $curEnc === 'ssl' ? 'selected' : '' }}>ssl (Recommended for Port 465)</option>
+                      <option value="none" {{ in_array($curEnc, ['none', 'null', '']) ? 'selected' : '' }}>none (No Encryption)</option>
+                    </select>
+                    <small class="form-text text-muted">Gmail বা আধুনিক মেইল সার্ভারে সাধারণত <strong>tls</strong> প্রযোজ্য।</small>
+                  </div>
+                </div>
+
+                <!-- MAIL_USERNAME -->
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label for="mail_username" class="font-weight-bold">
+                      MAIL_USERNAME (মেইল ইউজারনেম / ইমেইল আইডি)
+                    </label>
+                    <input type="text" 
+                           name="mail_username" 
+                           id="mail_username" 
+                           class="form-control" 
+                           value="{{ $settings['mail_username'] ?? config('mail.mailers.smtp.username', '') }}" 
+                           placeholder="e.g. yourname@gmail.com">
+                    <small class="form-text text-muted">যে ইমেইল অ্যাকাউন্ট থেকে মেইল যাবে তার ইউজারনেম বা ইমেইল।</small>
+                  </div>
+                </div>
+
+                <!-- MAIL_PASSWORD -->
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label for="mail_password" class="font-weight-bold">
+                      MAIL_PASSWORD (মেইল পাসওয়ার্ড / অ্যাপ পাসওয়ার্ড)
+                    </label>
+                    <div class="input-group">
+                      <input type="password" 
+                             name="mail_password" 
+                             id="mail_password" 
+                             class="form-control" 
+                             value="{{ $settings['mail_password'] ?? config('mail.mailers.smtp.password', '') }}" 
+                             placeholder="••••••••••••">
+                      <div class="input-group-append">
+                        <button type="button" class="btn btn-outline-secondary" onclick="toggleMailPasswordVisibility()">
+                          <i class="fas fa-eye" id="toggleMailPasswordIcon"></i>
+                        </button>
+                      </div>
+                    </div>
+                    <small class="form-text text-muted">Gmail ব্যবহার করলে সাধারণ পাসওয়ার্ডের বদলে Google Account এর <strong>16-digit App Password</strong> ব্যবহার করুন।</small>
+                  </div>
+                </div>
+
+                <!-- MAIL_FROM_ADDRESS -->
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label for="mail_from_address" class="font-weight-bold">
+                      MAIL_FROM_ADDRESS (প্রেরকের ইমেইল ঠিকানা) <span class="text-danger">*</span>
+                    </label>
+                    <input type="email" 
+                           name="mail_from_address" 
+                           id="mail_from_address" 
+                           class="form-control" 
+                           value="{{ $settings['mail_from_address'] ?? config('mail.from.address', 'hello@example.com') }}" 
+                           placeholder="e.g. info@modhu.com">
+                    <small class="form-text text-muted">ওটিপি প্রাপকের ইনবক্সে প্রেরক হিসেবে এই ইমেইলটি দেখা যাবে।</small>
+                  </div>
+                </div>
+
+                <!-- MAIL_FROM_NAME -->
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label for="mail_from_name" class="font-weight-bold">
+                      MAIL_FROM_NAME (প্রেরকের নাম) <span class="text-danger">*</span>
+                    </label>
+                    <input type="text" 
+                           name="mail_from_name" 
+                           id="mail_from_name" 
+                           class="form-control" 
+                           value="{{ $settings['mail_from_name'] ?? (config('mail.from.name') ?: ($settings['site_title'] ?? 'মধু')) }}" 
+                           placeholder="e.g. সুন্দরবনের মধু">
+                    <small class="form-text text-muted">ইমেইল নোটিফিকেশনে প্রেরক কোম্পানি বা সাইটের নাম।</small>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Test SMTP Box -->
+              <div class="card card-outline card-secondary bg-white shadow-none mt-3">
+                <div class="card-header py-2">
+                  <span class="font-weight-bold text-dark">
+                    <i class="fas fa-paper-plane text-info mr-1"></i> SMTP কানেকশন টেস্ট (Test SMTP Delivery)
+                  </span>
+                </div>
+                <div class="card-body py-3">
+                  <p class="text-muted small mb-3">
+                    কনফিগারেশন সংরক্ষণের পর এখানে আপনার যেকোনো ইমেইল লিখে টেস্ট বাটনে ক্লিক করে নিশ্চিত হতে পারেন যে সার্ভার সঠিকভাবে ইমেইল পাঠাতে পারছে।
+                  </p>
+                  <div class="form-inline">
+                    <div class="input-group mb-2 mr-sm-2" style="max-width: 380px; width: 100%;">
+                      <div class="input-group-prepend">
+                        <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                      </div>
+                      <input type="email" 
+                             id="testEmailInput" 
+                             class="form-control" 
+                             placeholder="আপনার টেস্ট ইমেইল ঠিকানা দিন" 
+                             value="{{ auth()->user()->email ?? '' }}">
+                    </div>
+                    <button type="button" class="btn btn-outline-info mb-2 font-weight-bold shadow-sm" onclick="triggerTestEmail()">
+                      <i class="fas fa-paper-plane mr-1"></i> টেস্ট ইমেইল পাঠান (Send Test Mail)
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
           </div>
         </div>
 
@@ -931,4 +1123,48 @@
     text-decoration: underline !important;
   }
 </style>
+@endpush
+
+@push('scripts')
+<script>
+function toggleMailPasswordVisibility() {
+  const input = document.getElementById('mail_password');
+  const icon = document.getElementById('toggleMailPasswordIcon');
+  if (input.type === 'password') {
+    input.type = 'text';
+    icon.classList.remove('fa-eye');
+    icon.classList.add('fa-eye-slash');
+  } else {
+    input.type = 'password';
+    icon.classList.remove('fa-eye-slash');
+    icon.classList.add('fa-eye');
+  }
+}
+
+function triggerTestEmail() {
+  const email = document.getElementById('testEmailInput').value;
+  if (!email) {
+    alert('অনুগ্রহ করে একটি টেস্ট ইমেইল ঠিকানা প্রদান করুন।');
+    return;
+  }
+  const form = document.createElement('form');
+  form.method = 'POST';
+  form.action = '{{ route('admin.settings.send-test-email') }}';
+  
+  const csrfInput = document.createElement('input');
+  csrfInput.type = 'hidden';
+  csrfInput.name = '_token';
+  csrfInput.value = '{{ csrf_token() }}';
+  form.appendChild(csrfInput);
+
+  const emailInput = document.createElement('input');
+  emailInput.type = 'hidden';
+  emailInput.name = 'test_email';
+  emailInput.value = email;
+  form.appendChild(emailInput);
+
+  document.body.appendChild(form);
+  form.submit();
+}
+</script>
 @endpush
