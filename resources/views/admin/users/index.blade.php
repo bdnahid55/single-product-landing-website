@@ -55,13 +55,13 @@
                     {{ $u->phone ?: '—' }}
                   </td>
                   <td class="text-center">
-                    @if($u->is_admin)
-                      <span class="badge badge-primary px-2 py-1 font-weight-bold">
-                        <i class="fas fa-shield-alt mr-1"></i> Admin
+                    @forelse($u->roles as $role)
+                      <span class="badge {{ $role->name === 'Super Admin' ? 'badge-danger' : ($role->name === 'Manager' ? 'badge-primary' : 'badge-info') }} px-2 py-1 font-weight-bold">
+                        <i class="fas fa-shield-alt mr-1"></i> {{ $role->name }}
                       </span>
-                    @else
-                      <span class="badge badge-secondary px-2 py-1">User</span>
-                    @endif
+                    @empty
+                      <span class="badge badge-secondary px-2 py-1">No Role</span>
+                    @endforelse
                   </td>
                   <td>
                     <small class="text-muted">

@@ -92,6 +92,45 @@
             </div>
           </div>
 
+          <!-- Administrative Role -->
+          @php
+            $currentRole = $user->roles->first()?->name ?? 'Manager';
+          @endphp
+          <div class="form-group">
+            <label for="role" class="font-weight-bold text-dark">
+              অ্যাডমিন রোল / দায়িত্ব (Role & Permissions) <span class="text-danger">*</span>
+            </label>
+            <div class="input-group">
+              <div class="input-group-prepend">
+                <span class="input-group-text"><i class="fas fa-shield-alt"></i></span>
+              </div>
+              <select name="role" id="role" class="form-control @error('role') is-invalid @enderror" required>
+                @foreach($roles as $r)
+                  <option value="{{ $r->name }}" {{ old('role', $currentRole) === $r->name ? 'selected' : '' }}>
+                    {{ $r->name }}
+                    @if($r->name === 'Super Admin')
+                      (সম্পূর্ণ অ্যাক্সেস - All Capabilities)
+                    @elseif($r->name === 'Manager')
+                      (অর্ডার, পণ্য, রিভিউ ও সেকশন ম্যানেজমেন্ট)
+                    @elseif($r->name === 'Editor')
+                      (পণ্য ও রিভিউ ম্যানেজমেন্ট)
+                    @else
+                      ({{ $r->permissions->count() > 0 ? $r->permissions->count() . 'টি পারমিশন' : 'কোনো পারমিশন নেই' }})
+                    @endif
+                  </option>
+                @endforeach
+              </select>
+              @error('role')
+                <div class="invalid-feedback">{{ $message }}</div>
+              @enderror
+            </div>
+            @can('manage-roles')
+              <div class="text-right mt-1">
+                <small><a href="{{ route('admin.roles.index') }}" target="_blank" class="text-primary font-weight-bold"><i class="fas fa-external-link-alt mr-1"></i> রোল ও পারমিশন পরিচালনা করুন</a></small>
+              </div>
+            @endcan
+          </div>
+
           <div class="alert alert-light border mt-4 mb-3">
             <i class="fas fa-key text-warning mr-1"></i>
             <strong>পাসওয়ার্ড পরিবর্তন (Password Change):</strong> বর্তমান পাসওয়ার্ড অপরিবর্তিত রাখতে চাইলে নিচের ঘরগুলো ফাঁকা রাখুন।

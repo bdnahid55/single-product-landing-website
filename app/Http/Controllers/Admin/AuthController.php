@@ -14,7 +14,9 @@ class AuthController extends Controller
     public function showLoginForm()
     {
         if (Auth::check() && Auth::user()->is_admin) {
-            return redirect()->route('admin.dashboard');
+            return Auth::user()->can('view-dashboard')
+                ? redirect()->route('admin.dashboard')
+                : redirect('/admin');
         }
 
         return view('admin.auth.login');
@@ -45,7 +47,11 @@ class AuthController extends Controller
 
             $request->session()->regenerate();
 
-            return redirect()->intended(route('admin.dashboard'))
+            $target = Auth::user()->can('view-dashboard')
+                ? route('admin.dashboard')
+                : url('/admin');
+
+            return redirect()->intended($target)
                 ->with('success', 'Welcome back, ' . Auth::user()->name . '!');
         }
 

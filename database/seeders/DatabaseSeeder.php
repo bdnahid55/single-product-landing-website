@@ -8,6 +8,8 @@ use App\Models\Setting;
 use App\Models\Review;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
+use Spatie\Permission\Models\Role;
+use Spatie\Permission\Models\Permission;
 
 class DatabaseSeeder extends Seeder
 {
@@ -16,8 +18,43 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        // 0. Seed Spatie Roles & Permissions
+        $permissions = [
+            'view-dashboard',
+            'manage-orders',
+            'manage-products',
+            'manage-reviews',
+            'manage-sections',
+            'manage-settings',
+            'manage-admins',
+            'manage-roles',
+        ];
+
+        foreach ($permissions as $permission) {
+            Permission::findOrCreate($permission, 'web');
+        }
+
+        $superAdminRole = Role::findOrCreate('Super Admin', 'web');
+        $superAdminRole->syncPermissions($permissions);
+
+        $managerRole = Role::findOrCreate('Manager', 'web');
+        $managerRole->syncPermissions([
+            'view-dashboard',
+            'manage-orders',
+            'manage-products',
+            'manage-reviews',
+            'manage-sections',
+        ]);
+
+        $editorRole = Role::findOrCreate('Editor', 'web');
+        $editorRole->syncPermissions([
+            'view-dashboard',
+            'manage-products',
+            'manage-reviews',
+        ]);
+
         // 1. Create Default Admin User
-        User::updateOrCreate(
+        $admin = User::updateOrCreate(
             ['email' => 'admin@modhu.com'],
             [
                 'name' => 'Admin',
@@ -26,6 +63,7 @@ class DatabaseSeeder extends Seeder
                 'is_admin' => true,
             ]
         );
+        $admin->syncRoles(['Super Admin']);
 
         // 2. Create Initial Honey Products
         $products = [

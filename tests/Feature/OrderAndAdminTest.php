@@ -35,6 +35,38 @@ class OrderAndAdminTest extends TestCase
             'is_admin' => true,
         ]);
 
+        // Seed Spatie Permissions & Roles for testing
+        $permissions = [
+            'view-dashboard',
+            'manage-orders',
+            'manage-products',
+            'manage-reviews',
+            'manage-sections',
+            'manage-settings',
+            'manage-admins',
+            'manage-roles',
+        ];
+
+        foreach ($permissions as $permission) {
+            \Spatie\Permission\Models\Permission::findOrCreate($permission, 'web');
+        }
+
+        $superAdminRole = \Spatie\Permission\Models\Role::findOrCreate('Super Admin', 'web');
+        $superAdminRole->syncPermissions($permissions);
+
+        $managerRole = \Spatie\Permission\Models\Role::findOrCreate('Manager', 'web');
+        $managerRole->syncPermissions([
+            'view-dashboard',
+            'manage-orders',
+            'manage-products',
+            'manage-reviews',
+            'manage-sections',
+        ]);
+
+        \Spatie\Permission\Models\Role::findOrCreate('Editor', 'web');
+
+        $this->admin->assignRole('Super Admin');
+
         // Create Sample Product
         $this->product = Product::create([
             'name'          => 'খাঁটি সুন্দরবনের মধু (১ কেজি)',
@@ -702,6 +734,7 @@ class OrderAndAdminTest extends TestCase
             'name'                  => 'সহকারী অ্যাডমিন',
             'email'                 => 'assistant@modhu.com',
             'phone'                 => '01755555555',
+            'role'                  => 'Manager',
             'password'              => 'secure123',
             'password_confirmation' => 'secure123',
         ]);
@@ -711,6 +744,7 @@ class OrderAndAdminTest extends TestCase
         $newAdmin = User::where('email', 'assistant@modhu.com')->first();
         $this->assertNotNull($newAdmin);
         $this->assertTrue($newAdmin->is_admin);
+        $this->assertTrue($newAdmin->hasRole('Manager'));
 
         // 4. Test that the new admin can log in
         $loginResp = $this->post('/admin/login', [
@@ -724,6 +758,7 @@ class OrderAndAdminTest extends TestCase
             'name'  => 'সহকারী অ্যাডমিন (আপডেটেড)',
             'email' => 'assistant_updated@modhu.com',
             'phone' => '01766666666',
+            'role'  => 'Manager',
         ]);
         $editResp->assertRedirect(route('admin.users.index'));
         $newAdmin->refresh();
@@ -739,5 +774,189 @@ class OrderAndAdminTest extends TestCase
         $deleteResp->assertRedirect(route('admin.users.index'));
         $deleteResp->assertSessionHas('success');
         $this->assertNull(User::find($newAdmin->id));
+    }
+
+    public function test_spatie_role_and_permission_enforcement(): void
+    {
+        // Create a Manager user who has manage-orders, but NOT manage-settings or manage-admins
+        $manager = User::create([
+            'name'     => 'Manager User',
+            'email'    => 'manager@modhu.com',
+            'password' => Hash::make('password123'),
+            'is_admin' => true,
+        ]);
+        $manager->assignRole('Manager');
+
+        // 1. Manager CAN access Orders
+        $ordersResp = $this->actingAs($manager)->get('/admin/orders');
+        $ordersResp->assertStatus(200);
+
+        // 2. Manager CAN access Products
+        $productsResp = $this->actingAs($manager)->get('/admin/products');
+        $productsResp->assertStatus(200);
+
+        // 3. Manager CANNOT access Settings (Forbidden 403)
+        $settingsResp = $this->actingAs($manager)->get('/admin/settings');
+        $settingsResp->assertStatus(403);
+
+        // 4. Manager CANNOT access Admin User Management (Forbidden 403)
+        $usersResp = $this->actingAs($manager)->get('/admin/users');
+        $usersResp->assertStatus(403);
+
+        // 5. Super Admin CAN access all of them
+        $superAdminSettings = $this->actingAs($this->admin)->get('/admin/settings');
+        $superAdminSettings->assertStatus(200);
+
+        $superAdminUsers = $this->actingAs($this->admin)->get('/admin/users');
+        $superAdminUsers->assertStatus(200);
+    }
+
+    public function test_super_admin_can_view_roles_and_create_new_role_with_permissions(): void
+    {
+        // 1. Roles index accessible
+        $indexResp = $this->actingAs($this->admin)->get('/admin/roles');
+        $indexResp->assertStatus(200);
+        $indexResp->assertSee('Super Admin');
+        $indexResp->assertSee('Roles & Permissions');
+
+        // 2. Roles create page accessible
+        $createResp = $this->actingAs($this->admin)->get('/admin/roles/create');
+        $createResp->assertStatus(200);
+        $createResp->assertSee('ড্যাশবোর্ড অ্যাক্সেস');
+        $createResp->assertSee('manage-orders');
+
+        // 3. Store new role
+        $storeResp = $this->actingAs($this->admin)->post('/admin/roles', [
+            'name' => 'Support Staff',
+            'permissions' => ['view-dashboard', 'manage-orders'],
+        ]);
+        $storeResp->assertRedirect('/admin/roles');
+
+        $role = \Spatie\Permission\Models\Role::findByName('Support Staff', 'web');
+        $this->assertNotNull($role);
+        $this->assertTrue($role->hasPermissionTo('view-dashboard'));
+        $this->assertTrue($role->hasPermissionTo('manage-orders'));
+        $this->assertFalse($role->hasPermissionTo('manage-settings'));
+
+        // 4. Edit role page
+        $editResp = $this->actingAs($this->admin)->get('/admin/roles/' . $role->id . '/edit');
+        $editResp->assertStatus(200);
+        $editResp->assertSee('Support Staff');
+
+        // 5. Update role permissions
+        $updateResp = $this->actingAs($this->admin)->put('/admin/roles/' . $role->id, [
+            'name' => 'Support Team Lead',
+            'permissions' => ['view-dashboard', 'manage-orders', 'manage-reviews'],
+        ]);
+        $updateResp->assertRedirect('/admin/roles');
+
+        $role->refresh();
+        $this->assertEquals('Support Team Lead', $role->name);
+        $this->assertTrue($role->hasPermissionTo('manage-reviews'));
+
+        // 6. Delete role
+        $deleteResp = $this->actingAs($this->admin)->delete('/admin/roles/' . $role->id);
+        $deleteResp->assertRedirect('/admin/roles');
+        $this->assertNull(\Spatie\Permission\Models\Role::where('name', 'Support Team Lead')->first());
+    }
+
+    public function test_super_admin_cannot_be_deleted(): void
+    {
+        $superAdminRole = \Spatie\Permission\Models\Role::findByName('Super Admin', 'web');
+        $response = $this->actingAs($this->admin)->delete('/admin/roles/' . $superAdminRole->id);
+        $response->assertRedirect('/admin/roles');
+        $response->assertSessionHas('error');
+        $this->assertNotNull(\Spatie\Permission\Models\Role::findByName('Super Admin', 'web'));
+    }
+
+    public function test_cannot_delete_role_if_users_are_assigned(): void
+    {
+        $role = \Spatie\Permission\Models\Role::create(['name' => 'Field Agent', 'guard_name' => 'web']);
+        $user = User::create([
+            'name'     => 'Agent 1',
+            'email'    => 'agent1@modhu.com',
+            'password' => Hash::make('password123'),
+            'is_admin' => true,
+        ]);
+        $user->assignRole('Field Agent');
+
+        $response = $this->actingAs($this->admin)->delete('/admin/roles/' . $role->id);
+        $response->assertRedirect('/admin/roles');
+        $response->assertSessionHas('error');
+        $this->assertNotNull(\Spatie\Permission\Models\Role::where('name', 'Field Agent')->first());
+    }
+
+    public function test_unauthorized_user_cannot_access_roles_management(): void
+    {
+        $manager = User::create([
+            'name'     => 'Manager User',
+            'email'    => 'manager2@modhu.com',
+            'password' => Hash::make('password123'),
+            'is_admin' => true,
+        ]);
+        $manager->assignRole('Manager');
+
+        $response = $this->actingAs($manager)->get('/admin/roles');
+        $response->assertStatus(403);
+    }
+
+    public function test_editing_roles_and_permissions_dynamically_applies_to_new_and_existing_admins(): void
+    {
+        // 1. Create a custom role 'Support Agent' with permissions: view-dashboard, manage-orders
+        $createRoleResp = $this->actingAs($this->admin)->post('/admin/roles', [
+            'name' => 'Support Agent',
+            'permissions' => ['view-dashboard', 'manage-orders'],
+        ]);
+        $createRoleResp->assertRedirect('/admin/roles');
+
+        $role = \Spatie\Permission\Models\Role::findByName('Support Agent', 'web');
+        $this->assertNotNull($role);
+
+        // 2. Create a new Admin with this custom role
+        $createAdminResp = $this->actingAs($this->admin)->post('/admin/users', [
+            'name' => 'Support Person',
+            'email' => 'support@modhu.com',
+            'password' => 'secret123',
+            'password_confirmation' => 'secret123',
+            'role' => 'Support Agent',
+        ]);
+        $createAdminResp->assertRedirect('/admin/users');
+
+        $newAdmin = User::where('email', 'support@modhu.com')->first();
+        $this->assertNotNull($newAdmin);
+        $this->assertTrue($newAdmin->hasRole('Support Agent'));
+
+        // 3. Verify permissions immediately active for this new admin
+        $this->actingAs($newAdmin)->get('/admin/orders')->assertStatus(200);
+        $this->actingAs($newAdmin)->get('/admin/products')->assertStatus(403);
+        $this->actingAs($newAdmin)->get('/admin/settings')->assertStatus(403);
+
+        // 4. Edit the role: grant 'manage-products' and revoke 'manage-orders'
+        $updateRoleResp = $this->actingAs($this->admin)->put('/admin/roles/' . $role->id, [
+            'name' => 'Support Agent',
+            'permissions' => ['view-dashboard', 'manage-products'],
+        ]);
+        $updateRoleResp->assertRedirect('/admin/roles');
+
+        // 5. Verify the EXISTING admin immediately reflects the updated permissions
+        $this->actingAs($newAdmin)->get('/admin/products')->assertStatus(200);
+        $this->actingAs($newAdmin)->get('/admin/orders')->assertStatus(403);
+
+        // 6. Change this admin's role to 'Manager'
+        $updateUserResp = $this->actingAs($this->admin)->put('/admin/users/' . $newAdmin->id, [
+            'name' => 'Support Person Promoted',
+            'email' => 'support@modhu.com',
+            'role' => 'Manager',
+        ]);
+        $updateUserResp->assertRedirect('/admin/users');
+
+        $newAdmin->refresh();
+        $this->assertTrue($newAdmin->hasRole('Manager'));
+        $this->assertFalse($newAdmin->hasRole('Support Agent'));
+
+        // Manager has manage-orders, manage-products, manage-reviews, manage-sections
+        $this->actingAs($newAdmin)->get('/admin/orders')->assertStatus(200);
+        $this->actingAs($newAdmin)->get('/admin/sections')->assertStatus(200);
+        $this->actingAs($newAdmin)->get('/admin/settings')->assertStatus(403);
     }
 }

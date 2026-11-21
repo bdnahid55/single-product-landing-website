@@ -11,6 +11,7 @@ use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Admin\ReviewController;
 use App\Http\Controllers\Admin\SectionController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Admin\RoleController;
 
 /*
 |--------------------------------------------------------------------------
@@ -48,36 +49,80 @@ Route::prefix('admin')->name('admin.')->group(function () {
 */
 Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(function () {
     Route::get('/', function () {
-        return redirect()->route('admin.dashboard');
+        $user = auth()->user();
+        if ($user->can('view-dashboard')) {
+            return redirect()->route('admin.dashboard');
+        }
+        if ($user->can('manage-orders')) {
+            return redirect()->route('admin.orders.index');
+        }
+        if ($user->can('manage-products')) {
+            return redirect()->route('admin.products.index');
+        }
+        if ($user->can('manage-reviews')) {
+            return redirect()->route('admin.reviews.index');
+        }
+        if ($user->can('manage-sections')) {
+            return redirect()->route('admin.sections.index');
+        }
+        if ($user->can('manage-settings')) {
+            return redirect()->route('admin.settings.index');
+        }
+        if ($user->can('manage-admins')) {
+            return redirect()->route('admin.users.index');
+        }
+        if ($user->can('manage-roles')) {
+            return redirect()->route('admin.roles.index');
+        }
+
+        abort(403, 'আপনার কোনো প্রশাসনিক সেকশন ব্যবহারের অনুমতি নেই।');
     });
 
-    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    // Dashboard
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard')->middleware('can:view-dashboard');
 
     // Products Management
-    Route::put('/products-mode', [ProductController::class, 'updateMode'])->name('products.update-mode');
-    Route::patch('/products/{product}/toggle-status', [ProductController::class, 'toggleStatus'])->name('products.toggle-status');
-    Route::resource('products', ProductController::class);
+    Route::middleware('can:manage-products')->group(function () {
+        Route::put('/products-mode', [ProductController::class, 'updateMode'])->name('products.update-mode');
+        Route::patch('/products/{product}/toggle-status', [ProductController::class, 'toggleStatus'])->name('products.toggle-status');
+        Route::resource('products', ProductController::class);
+    });
 
     // Orders Management
-    Route::get('/orders', [AdminOrderController::class, 'index'])->name('orders.index');
-    Route::get('/orders/{order}', [AdminOrderController::class, 'show'])->name('orders.show');
-    Route::patch('/orders/{order}/status', [AdminOrderController::class, 'updateStatus'])->name('orders.update-status');
-    Route::get('/orders/{order}/invoice', [AdminOrderController::class, 'invoice'])->name('orders.invoice');
+    Route::middleware('can:manage-orders')->group(function () {
+        Route::get('/orders', [AdminOrderController::class, 'index'])->name('orders.index');
+        Route::get('/orders/{order}', [AdminOrderController::class, 'show'])->name('orders.show');
+        Route::patch('/orders/{order}/status', [AdminOrderController::class, 'updateStatus'])->name('orders.update-status');
+        Route::get('/orders/{order}/invoice', [AdminOrderController::class, 'invoice'])->name('orders.invoice');
+    });
 
     // Customer Reviews Management
-    Route::get('/reviews', [ReviewController::class, 'index'])->name('reviews.index');
-    Route::post('/reviews', [ReviewController::class, 'store'])->name('reviews.store');
-    Route::patch('/reviews/{review}/toggle', [ReviewController::class, 'toggleApproval'])->name('reviews.toggle');
-    Route::delete('/reviews/{review}', [ReviewController::class, 'destroy'])->name('reviews.destroy');
+    Route::middleware('can:manage-reviews')->group(function () {
+        Route::get('/reviews', [ReviewController::class, 'index'])->name('reviews.index');
+        Route::post('/reviews', [ReviewController::class, 'store'])->name('reviews.store');
+        Route::patch('/reviews/{review}/toggle', [ReviewController::class, 'toggleApproval'])->name('reviews.toggle');
+        Route::delete('/reviews/{review}', [ReviewController::class, 'destroy'])->name('reviews.destroy');
+    });
 
     // Landing Page Section Visibility Controls
-    Route::get('/sections', [SectionController::class, 'index'])->name('sections.index');
-    Route::put('/sections', [SectionController::class, 'update'])->name('sections.update');
+    Route::middleware('can:manage-sections')->group(function () {
+        Route::get('/sections', [SectionController::class, 'index'])->name('sections.index');
+        Route::put('/sections', [SectionController::class, 'update'])->name('sections.update');
+    });
 
     // Site & SEO Settings Management
-    Route::get('/settings', [SettingController::class, 'index'])->name('settings.index');
-    Route::put('/settings', [SettingController::class, 'update'])->name('settings.update');
+    Route::middleware('can:manage-settings')->group(function () {
+        Route::get('/settings', [SettingController::class, 'index'])->name('settings.index');
+        Route::put('/settings', [SettingController::class, 'update'])->name('settings.update');
+    });
 
     // Admin Accounts Management
-    Route::resource('users', UserController::class)->except(['show']);
+    Route::middleware('can:manage-admins')->group(function () {
+        Route::resource('users', UserController::class)->except(['show']);
+    });
+
+    // Roles & Permissions Management
+    Route::middleware('can:manage-roles')->group(function () {
+        Route::resource('roles', RoleController::class)->except(['show']);
+    });
 });

@@ -92,6 +92,44 @@
             </div>
           </div>
 
+          <!-- Administrative Role -->
+          <div class="form-group">
+            <label for="role" class="font-weight-bold text-dark">
+              অ্যাডমিন রোল / দায়িত্ব (Role & Permissions) <span class="text-danger">*</span>
+            </label>
+            <div class="input-group">
+              <div class="input-group-prepend">
+                <span class="input-group-text"><i class="fas fa-shield-alt"></i></span>
+              </div>
+              <select name="role" id="role" class="form-control @error('role') is-invalid @enderror" required>
+                <option value="">-- রোল নির্বাচন করুন --</option>
+                @foreach($roles as $r)
+                  <option value="{{ $r->name }}" {{ old('role', 'Manager') === $r->name ? 'selected' : '' }}>
+                    {{ $r->name }}
+                    @if($r->name === 'Super Admin')
+                      (সম্পূর্ণ অ্যাক্সেস - All Capabilities)
+                    @elseif($r->name === 'Manager')
+                      (অর্ডার, পণ্য, রিভিউ ও সেকশন ম্যানেজমেন্ট)
+                    @elseif($r->name === 'Editor')
+                      (পণ্য ও রিভিউ ম্যানেজমেন্ট)
+                    @else
+                      ({{ $r->permissions->count() > 0 ? $r->permissions->count() . 'টি পারমিশন' : 'কোনো পারমিশন নেই' }})
+                    @endif
+                  </option>
+                @endforeach
+              </select>
+              @error('role')
+                <div class="invalid-feedback">{{ $message }}</div>
+              @enderror
+            </div>
+            <div class="d-flex justify-content-between align-items-center mt-1">
+              <small class="form-text text-muted">রোল অনুযায়ী এই অ্যাডমিন কোন কোন মেনু ও ফিচার ব্যবহার করতে পারবেন তা নির্ধারিত হবে।</small>
+              @can('manage-roles')
+                <small><a href="{{ route('admin.roles.create') }}" target="_blank" class="text-primary font-weight-bold"><i class="fas fa-plus-circle mr-1"></i> নতুন রোল তৈরি করুন</a></small>
+              @endcan
+            </div>
+          </div>
+
           <div class="row">
             <!-- Password -->
             <div class="col-md-6">
