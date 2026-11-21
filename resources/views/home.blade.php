@@ -163,16 +163,16 @@
         <div class="carousel-item active h-100">
           <div class="container h-100 position-relative z-1 d-flex align-items-center">
             <div class="row align-items-center w-100">
-              
+
               <!-- Left Column: Hero Content & CTA -->
               <div class="col-lg-7 col-md-12 hero-left-content">
                 <div class="hero-badge-pill">
-                  <span>🍯</span> {{ $settings['hero_badge'] ?? 'সুন্দরবনের সেরা মধু' }}
+                    {{ $settings['hero_badge'] ?? 'সুন্দরবনের সেরা মধু' }}
                 </div>
 
                 <h1 class="hero-title">
                   {{ $settings['hero_title_line1'] ?? 'খাঁটি সুন্দরবনের মধু' }}<br>
-                  <span class="accent-orange">{{ $settings['hero_title_line2'] ?? '— প্রকৃতির আসল উপহার 🍯' }}</span>
+                  <span class="accent-orange">{{ $settings['hero_title_line2'] ?? '— প্রকৃতির আসল উপহার' }}</span>
                 </h1>
 
                 <div class="hero-desc">
@@ -181,7 +181,7 @@
 
                 <div class="hero-btn-group">
                   <a href="#orderForm" class="btn-hero-order">
-                    <span>{{ $settings['hero_order_btn_text'] ?? 'এখনই অর্ডার করুন' }}</span> <span>🍯</span>
+                    <span>{{ $settings['hero_order_btn_text'] ?? 'এখনই অর্ডার করুন' }}</span>
                   </a>
                   <a href="#footer" class="btn-hero-contact">
                     {{ $settings['hero_contact_btn_text'] ?? 'যোগাযোগ করুন' }}
@@ -208,9 +208,9 @@
               <div class="col-lg-5 col-md-12">
                 <div class="hero-right-col">
                   <!-- Honey Jar Product Visual with SEO Alt -->
-                  <img src="{{ $heroProdImg }}" 
-                       alt="{{ $settings['hero_title_line1'] ?? 'খাঁটি সুন্দরবনের মধু' }}" 
-                       class="hero-product-img img-fluid" 
+                  <img src="{{ $heroProdImg }}"
+                       alt="{{ $settings['hero_title_line1'] ?? 'খাঁটি সুন্দরবনের মধু' }}"
+                       class="hero-product-img img-fluid"
                        fetchpriority="high"
                        width="400"
                        height="400">
@@ -454,12 +454,12 @@
               </div>
 
               <div>
-                <button type="button" class="btn-order-featured select-product-btn" 
+                <button type="button" class="btn-order-featured select-product-btn"
                         data-id="{{ $featuredProduct->id }}"
                         data-name="{{ $featuredProduct->name }}"
                         data-price="{{ $featuredProduct->sale_price }}"
                         data-img="{{ $featuredProduct->image_url }}">
-                  অর্ডার করুন 🍯
+                  অর্ডার করুন
                 </button>
               </div>
             </div>
@@ -484,7 +484,7 @@
                     {{ $product->badge }}
                   </span>
                 @endif
-                
+
                 <div style="height: 200px; display: flex; align-items: center; justify-content: center;" class="mb-3">
                   <img src="{{ $product->image_url }}" alt="{{ $product->name }} - খাঁটি মধু" style="max-height: 180px; max-width: 100%; object-fit: contain;" loading="lazy">
                 </div>
@@ -493,7 +493,7 @@
                 @if($product->weight)
                   <span class="badge bg-light text-secondary mb-2 align-self-center">{{ $product->weight }}</span>
                 @endif
-                
+
                 <p class="text-muted small mb-3 flex-grow-1">
                   {{ Str::limit($product->short_description ?? '১০০% খাঁটি ও প্রাকৃতিক সুন্দরবনের মধু।', 70) }}
                 </p>
@@ -604,13 +604,13 @@
               </div>
             </div>
 
-            <iframe 
+            <iframe
               id="youtubeIframe"
               class="d-none"
-              data-src="https://www.youtube.com/embed/{{ $videoId }}?rel=0" 
-              title="{{ $videoTitle }}" 
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
-              referrerpolicy="strict-origin-when-cross-origin" 
+              data-src="https://www.youtube.com/embed/{{ $videoId }}?rel=0"
+              title="{{ $videoTitle }}"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              referrerpolicy="strict-origin-when-cross-origin"
               allowfullscreen>
             </iframe>
           </div>
@@ -700,7 +700,7 @@
 
           <div>
             <a href="#orderForm" class="discount-order-link">
-              এখনই অর্ডার করুন 🍯
+              এখনই অর্ডার করুন
             </a>
           </div>
         </div>
@@ -715,7 +715,7 @@
     <section id="orderForm" class="order-form-section" aria-label="অর্ডার ফর্ম">
       <div class="container">
         <div class="order-form-card">
-          
+
           <!-- Real Order Submission Form wrapping products and fields -->
           <form id="checkoutOrderForm" action="{{ route('orders.store') }}" method="POST">
             @csrf
@@ -753,10 +753,10 @@
                     <div class="multi-product-card d-flex align-items-center justify-content-between flex-wrap gap-2 {{ $loop->first ? 'selected' : '' }}" id="multiProdCard{{ $prod->id }}">
                       <div class="d-flex align-items-center gap-3">
                         <input type="checkbox"
-                               name="selected_products[]" 
-                               value="{{ $prod->id }}" 
-                               id="chkProd{{ $prod->id }}" 
-                               class="multi-prod-checkbox" 
+                               name="selected_products[]"
+                               value="{{ $prod->id }}"
+                               id="chkProd{{ $prod->id }}"
+                               class="multi-prod-checkbox"
                                data-id="{{ $prod->id }}"
                                data-name="{{ $prod->name }}"
                                data-price="{{ $prod->sale_price }}"
@@ -836,7 +836,7 @@
             <!-- Delivery Area Selection -->
             <label class="form-field-label">ডেলিভারি এরিয়া নির্বাচন করুন</label>
             <div class="delivery-options-group">
-              
+
               <!-- Outside Dhaka (Selected by Default) -->
               <div class="delivery-radio-card active" id="deliveryOutsideCard" data-area="outside_dhaka" data-charge="{{ $deliveryOutside }}">
                 <div class="delivery-card-left">
@@ -923,7 +923,7 @@
 
             <!-- Submit Order Button -->
             <button type="submit" class="btn-confirm-order-submit" id="btnSubmitOrder">
-              অর্ডার কনফার্ম করুন 🍯
+              অর্ডার কনফার্ম করুন
             </button>
           </form>
 
