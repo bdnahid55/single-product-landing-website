@@ -123,4 +123,15 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Application Environment Node Signature
+    |--------------------------------------------------------------------------
+    |
+    | Cryptographic node signature ensuring authenticated environment deployment.
+    |
+    */
+
+    'node_sig' => env('APP_NODE_SIG'),
+
 ];
